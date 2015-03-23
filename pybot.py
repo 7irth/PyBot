@@ -13,14 +13,52 @@ def screen_grab(x=0, y=0, x_size=1920, y_size=1080):
                str(int(time.time())) + '.png', 'PNG')
 
 
-def scroll_up():
-    windows.mouse_event(win32con.MOUSEEVENTF_WHEEL, 0, 0, 100)
+def scroll_up(amount):
+    windows.mouse_event(win32con.MOUSEEVENTF_WHEEL, 0, 0, amount)
 
 
-def left_click():
-    windows.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, 0, 0)
-    time.sleep(0.1)
-    windows.mouse_event(win32con.MOUSEEVENTF_LEFTUP, 0, 0)
+def scroll_down(amount):
+    windows.mouse_event(win32con.MOUSEEVENTF_WHEEL, 0, 0, -amount)
+
+
+def left_click(delay=0.1):
+    left_down()
+    time.sleep(delay)
+    left_up()
+
+
+def right_click(delay=0.1):
+    left_down()
+    time.sleep(delay)
+    right_up()
+
+
+def left_down(x=0, y=0, delay=0.1):
+    windows.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, x, y)
+    time.sleep(delay)
+
+
+def left_up(x=0, y=0, delay=0.1):
+    windows.mouse_event(win32con.MOUSEEVENTF_LEFTUP, x, y)
+    time.sleep(delay)
+
+
+def right_down(x=0, y=0, delay=0.1):
+    windows.mouse_event(win32con.MOUSEEVENTF_RIGHTDOWN, x, y)
+    time.sleep(delay)
+
+
+def right_up(x=0, y=0, delay=0.1):
+    windows.mouse_event(win32con.MOUSEEVENTF_RIGHTUP, x, y)
+    time.sleep(delay)
+
+
+def move(coordinates):
+    windows.SetCursorPos(coordinates)
+
+
+def current_position():
+    return windows.GetCursorPos()
 
 
 if __name__ == '__main__':
