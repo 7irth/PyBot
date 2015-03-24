@@ -11,14 +11,17 @@ from numpy import *
 box = (613, 55, 120, 24)
 target_cords = (box[0] + 108, box[1] + 13)
 
-target_image = Image.open("match.png")
+target_image = Image.open("run_match.png")
 
 
 def screen_grab(x=0, y=0, x_size=1920, y_size=1080):
     image = ImageGrab.grab((x, y, x + x_size, y + y_size))
+    return image
+
+
+def print_img(image):
     image.save(os.getcwd() + '\\screenshot_' +
                str(int(time.time())) + '.png', 'PNG')
-    return image
 
 
 def grab(x=0, y=0, x_size=1920, y_size=1080):
@@ -87,13 +90,29 @@ def find_target(image):
 
 
 def get_signature(image):
-    colours = ImageOps.grayscale(image).getcolors()
-    return sum(colours)
+    print(image.getpixel((0, 0)))
+    print(image.tostring())
+    values = ImageOps.grayscale(image).getcolors()
+    return sum(values)
 
 
 if __name__ == '__main__':
-    # print(get_signature(target_image))
-    t_sig = get_signature(target_image)
-    print(t_sig)
-    print(get_signature(Image.open("Capture1.PNG")))
-    print(get_signature(screen_grab(1114, 373, 960, 24)))
+    time.sleep(3)
+    # got = screen_grab(632, 364, 960, 24)
+    runner = screen_grab(600, 50, 150, 50)
+
+    things = []
+    r = runner.load()
+    for x in range(150):
+        for y in range(50):
+            things.append(r[x, y])
+
+    other_things = []
+    q = target_image.load()
+    for x in range(120):
+        for y in range(24):
+            other_things.append(q[x, y])
+
+    print(things)
+    print("FIND ME")
+    print(other_things)
