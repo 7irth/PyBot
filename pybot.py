@@ -5,13 +5,11 @@ import os
 import time
 import win32api as windows
 import win32con
-from numpy import *
+import numpy as np
 
 # magic numbers for running itself
 box = (613, 55, 120, 24)
 target_cords = (box[0] + 108, box[1] + 13)
-
-target_image = Image.open("run_match.png")
 
 
 def screen_grab(x=0, y=0, x_size=1920, y_size=1080):
@@ -97,22 +95,51 @@ def get_signature(image):
 
 
 if __name__ == '__main__':
-    time.sleep(3)
-    # got = screen_grab(632, 364, 960, 24)
+    # time.sleep(3)
+    target_img = Image.open("run_match.png")
+    sample_img = Image.open("runner.png")
     runner = screen_grab(600, 50, 150, 50)
+    # got = screen_grab(632, 364, 960, 24)
 
-    things = []
-    r = runner.load()
-    for x in range(150):
-        for y in range(50):
-            things.append(r[x, y])
+    target = np.array(target_img.getdata())
+    sample = np.array(sample_img.getdata())
+    got = np.array(runner.getdata())
 
-    other_things = []
-    q = target_image.load()
-    for x in range(120):
-        for y in range(24):
-            other_things.append(q[x, y])
+    print(target)
 
-    print(things)
-    print("FIND ME")
-    print(other_things)
+    # got = got.ravel()
+
+    print(len(sample))
+    # print(len(got))
+    print(len(target))
+
+    # it = np.nditer(target, flags=['c_index'])
+
+    print(target[0])
+    attempt = False
+    for i in range(0, sample.shape[0]):
+        if not attempt and np.all(sample[i] == target[0]):  # first element match
+            print("starting run at " + str(i))
+            attempt = True
+            at = 0
+
+        if attempt and at < target.shape[0]:
+            if np.all(sample[i] == target[at]) or np.all(sample[i+1] == target[at+1]):
+                at += 1
+            else:
+                attempt = False
+                print("run ova after " + str(at) + "\nmismatch:")
+                print(sample[i], target[at])
+
+    print(at)
+
+    # while not it.finished:
+    #     print(it[0])
+    #     if it[0] == got[0]:
+    #         tit = nditer(got)
+    #         print("yay")
+    #     it.iternext()
+
+    # print(sample)
+    # print("-")
+    # print(target)
