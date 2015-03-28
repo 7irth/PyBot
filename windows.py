@@ -52,3 +52,7 @@ def move(coordinates):
 
 def current_position():
     return windows.GetCursorPos()
+
+
+def type_something():
+    windows.keybd_event(ord('a'), 0, 0, 0)
