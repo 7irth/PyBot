@@ -11,29 +11,8 @@ import solver
 start, middle, end = 0, 0, 0  # for timing
 
 
-class Timer:
-    def __init__(self, label=''):
-        self.label = label
-
-    def __enter__(self):
-        self.start = time.clock()
-        return self
-
-    def __exit__(self, *args):
-        self.end = time.clock()
-        self.interval = self.end - self.start
-        log = ''
-        if self.label:
-            log += '\"{}\" '.format(self.label)
-        else:
-            log += 'Block '
-        log += 'took ' + str(round(self.interval, 5)) + ' seconds'
-        print(log)
-
-
 def screen_grab(x=0, y=0, x_size=1920, y_size=1080):
-    image = ImageGrab.grab((x, y, x + x_size, y + y_size))
-    return image
+    return ImageGrab.grab((x, y, x + x_size, y + y_size))
 
 
 def print_img(image, description=str(int(time.time()))):
@@ -73,18 +52,18 @@ def find_target(target_in, sample_in=screen_grab(), debug=False):
 
         if np.all(sample[current_pix] == target[0]):  # first pixel match
             for column in range(t_width):
-                sample_loc = column + current_pix
-                target_loc = column
-                if not (np.all(sample[sample_loc] == target[target_loc])):
+                s = column + current_pix
+                t = column
+                if not (np.all(sample[s] == target[t])):
                     break
 
             else:  # top row match
 
                 for row in range(t_height):
-                    sample_loc = row * s_width + current_pix
-                    target_loc = row * t_width
+                    s = row * s_width + current_pix
+                    t = row * t_width
 
-                    if not (np.all(sample[sample_loc] == target[target_loc])):
+                    if not (np.all(sample[s] == target[t])):
                         break
 
                 else:  # first column match
@@ -92,11 +71,10 @@ def find_target(target_in, sample_in=screen_grab(), debug=False):
                     # TODO: make this work
                     for row in range(1, t_height):
                         for column in range(1, t_width):
-                            sample_loc = row * s_width + column + current_pix
-                            target_loc = row * t_width + column
+                            s = row * s_width + column + current_pix
+                            t = row * t_width + column
 
-                            if not (np.all(sample[sample_loc]
-                                               == target[target_loc])):
+                            if not (np.all(sample[s] == target[t])):
                                 break
 
                     else:  # full match
@@ -120,36 +98,25 @@ def find_target(target_in, sample_in=screen_grab(), debug=False):
 
 
 def get_puzzle(sudoku):
-    a = sudoku.crop((2, 2, 34, 34))
     loaded = sudoku.load()
-    # print(loaded[22, 12] != (255, 255, 255))
-    # print(loaded[55, 12] != (255, 255, 255))
-    # print(loaded[88, 12] != (255, 255, 255))
-    # print(loaded[122, 12] != (255, 255, 255))
-    # print(loaded[22, 78] != (255, 255, 255))
 
-    # sample = np.array(sudoku.getdata())
-    # s_width, s_height = sudoku.size
-    #
-    # print(s_width, s_height)
-    # print(len(sample))
+    # magic numbers for character recognition
+    numbers = collections.OrderedDict()
+    numbers[(9, 22, 15)] = []
+    numbers[(6, 12, 17)] = []
+    numbers[(4, 12, 19)] = []
+    numbers[(8, 13, 20)] = []
+    numbers[(5, 14, 14)] = []
+    numbers[(7, 22, 9)] = []
+    numbers[(2, 12, 13)] = []
+    numbers[(3, 13, 11)] = []
+    numbers[(1, 15, 10)] = []
 
-    other_got = collections.OrderedDict()
-    other_got[(9, 22, 12)] = []
-    other_got[(6, 12, 17)] = []
-    other_got[(4, 12, 19)] = []
-    other_got[(8, 13, 20)] = []
-    other_got[(5, 14, 14)] = []
-    other_got[(7, 22, 9)] = []
-    other_got[(2, 12, 13)] = []
-    other_got[(3, 13, 11)] = []
-    other_got[(1, 15, 10)] = []
-
-    bah = []
+    got = []
 
     for row in range(9):
         for col in range(9):
-            for number in other_got:
+            for number in numbers:
                 x = number[1] + 33 * col
                 y = number[2] + 33 * row
 
@@ -159,50 +126,44 @@ def get_puzzle(sudoku):
                 if col > 5:
                     x += 1
 
-                if (row, col) not in bah and (loaded[x, y] != (255, 255, 255)):
-                    other_got[number].append((row, col))
-                    bah.append((row, col))
+                if (row, col) not in got and (loaded[x, y] != (255, 255, 255)):
+                    numbers[number].append((row, col))
+                    got.append((row, col))
 
-    for thing in other_got:
-        print(thing[0], other_got[thing])
-    print(len(bah))
+    return numbers
 
-    # loaded[x, y] = (50, 0, 0)
-    # sudoku.save(os.getcwd() + '\\' + "sudokut" + '.png', 'PNG')
+
+def solve_puzzle(given):
+    sudoku = solver.Sudoku()
+    puzzle = [0 for _ in range(81)]
+
+    for n in given:
+        for thing in given[n]:
+            puzzle[thing[0] * 9 + thing[1]] = n[0]
+
+    if sudoku.get_input(puzzle) and sudoku.solve():
+        submit_puzzle([number for row in sudoku.sudoku for number in row])
+    else:
+        raise Exception("Couldn't solve!")
+
+
+def submit_puzzle(solved):
+    for number in solved:
+        press(str(number), 'tab', delay=0.005)
+
+    # move to and hit submit button
+    press('tab', 'tab', 'tab', 'enter')
 
 
 if __name__ == '__main__':
-    # test_sudoku = '003105060' \
-    #               '000004008' \
-    #               '060000507' \
-    #               '056000000' \
-    #               '094602150' \
-    #               '000000620' \
-    #               '509000040' \
-    #               '600400000' \
-    #               '040203900'
-
-    # sudoku = solver.Sudoku()
-    # sudoku.get_input(test_sudoku)
-    # sudoku.solve()
-    # print(sudoku.sudoku)
-
     target_img = Image.open("images/sudoku.png")
-    get_puzzle(target_img)
+    # solve_puzzle(get_puzzle(target_img))
 
-    # random_target = screen_grab(np.random.randint(10, 1500),
-    #                             np.random.randint(10, 800),
-    #                             np.random.randint(5, 200),
-    #                             np.random.randint(5, 200))
+    curr = find_target(target_img)
+    print("data prep", str(round(middle - start, 5)))
+    print("actual search", str(round(end - middle, 5)))
 
-    # with Timer("search"):
-    #     move(find_target(target_img))
-    #     print("data prep", str(round(middle - start, 5)))
-    #     print("actual search", str(round(end - middle, 5)))
+    move(curr[0] + 5, curr[1] + 5)
+    left_click()
 
-    # type_something()
-
-    # left_click()
-
-    # print_img(screen_grab(1441, 411, 302, 299), "sudoku")
-    # print(current_position())
+    solve_puzzle(get_puzzle(screen_grab(curr[0], curr[1], 302, 299)))
