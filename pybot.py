@@ -33,6 +33,8 @@ def get_signature(image):
     return sum(values)
 
 
+# takes ~1.7 seconds to turn target and sample into searchable arrays,
+#       ~12 seconds to search the whole thing unsuccessfully
 def find_target(target_in, sample_in=screen_grab(), debug=False):
     global start, middle, end
 
@@ -144,6 +146,7 @@ def solve_puzzle(given):
     if sudoku.get_input(puzzle) and sudoku.solve():
         submit_puzzle([number for row in sudoku.sudoku for number in row])
     else:
+        # refresh and try again
         raise Exception("Couldn't solve!")
 
 
@@ -151,8 +154,45 @@ def submit_puzzle(solved):
     for number in solved:
         press(str(number), 'tab', delay=0.005)
 
-    # move to and hit submit button
-    press('tab', 'tab', 'tab', 'enter')
+
+def next_puzzle(puzzle_pos):
+    time.sleep(1)
+
+    print(puzzle_pos)
+
+    # sample from left of puzzle and down for "How am I doing?"
+    sample = screen_grab(puzzle_pos[0] - 100, puzzle_pos[1] + 300, 210, 125)
+    print_img(sample, "test_images/how_search")
+
+    how_pos = find_target(Image.open("images/how_button.png"), sample)
+    move(how_pos[0] + puzzle_pos[0] - 100, how_pos[1] + puzzle_pos[1] + 300)
+    left_click()  # next puzzle
+
+    time.sleep(1.5)
+
+    # check for "Bring on another" now
+    sample = screen_grab(puzzle_pos[0], puzzle_pos[1] + 50, 300, 300)
+    print_img(sample, "test_images/bring_search")
+
+    bring_another = find_target(Image.open("images/bring_another.png"), sample)
+    if bring_another != (0, 0):
+        # found bring
+        move(bring_another[0] + puzzle_pos[0],
+             bring_another[1] + puzzle_pos[1] + 50)
+        left_click()
+        time.sleep(1)
+
+    sample = screen_grab(puzzle_pos[0] - 100, puzzle_pos[1] - 100, 450, 500)
+    print_img(sample, "test_images/next_sudoku")
+    next_pos = find_target(Image.open("images/sudoku.png"), sample)
+    print(next_pos)
+    current = (next_pos[0] + puzzle_pos[0] - 100,
+               next_pos[1] + puzzle_pos[1] - 100)
+    move(current[0] + 5, current[1] + 5)
+    left_click()
+    solve_puzzle(get_puzzle(screen_grab(current[0], current[1], 302, 299)))
+
+    next_puzzle(current)
 
 
 if __name__ == '__main__':
@@ -167,3 +207,5 @@ if __name__ == '__main__':
     left_click()
 
     solve_puzzle(get_puzzle(screen_grab(curr[0], curr[1], 302, 299)))
+
+    next_puzzle(curr)
