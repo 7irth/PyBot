@@ -222,7 +222,10 @@ def press_hold_release(*args, delay=0.05):
 def enter_phrase(*args, delay=0.05):
     for phrase in args:
         for letter in phrase:
-            press(letter, delay=delay)
+            if letter == ' ':
+                press('spacebar')
+            else:
+                press(letter, delay=delay)
 
 
 def screen_size():
