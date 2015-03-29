@@ -1,22 +1,46 @@
-import collections
-
 __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
 import os
 from windows import *
 import numpy as np
-from PIL import Image, ImageGrab, ImageOps
+from PIL import Image, ImageGrab, ImageOps, ImageChops
 import solver
+from collections import OrderedDict
 
 start, middle, end = 0, 0, 0  # for timing
+runs = 3
 
 
-def screen_grab(x=0, y=0, x_size=1920, y_size=1080):
+# EMBEDDED IMAGE FILES
+
+# import base64
+#
+# encoded_puzzle = ''
+# puzzle_target = base64.b64decode(encoded_puzzle)
+# target_img = Image.frombytes('RGB', (302, 299), puzzle_target)
+target_img = Image.open("images/sudoku.png")
+
+# encoded_bring = ''
+# bring_target = base64.b64decode(encoded_bring)
+# target_bring_button = Image.frombytes('RGB', (80, 20), bring_target)
+target_bring_button = Image.open("images/bring_button.png")
+
+# encoded_how = ''
+# how_target = base64.b64decode(encoded_how)
+# target_how_button = Image.frombytes('RGB', (50, 15), how_target)
+# target_how_button = Image.open('images/how_button.png')
+
+
+def screen_grab(x=0, y=0, x_size=screen_size()[0], y_size=screen_size()[1]):
     return ImageGrab.grab((x, y, x + x_size, y + y_size))
 
 
 def print_img(image, description=str(int(time.time()))):
     image.save(os.getcwd() + '\\' + description + '.png', 'PNG')
+
+
+def print_img_jpg(image, description=str(int(time.time()))):
+    image.save(os.getcwd() + '\\' + description + '.jpg', 'JPEG')
 
 
 def grab(x=0, y=0, x_size=1920, y_size=1080):
@@ -26,6 +50,10 @@ def grab(x=0, y=0, x_size=1920, y_size=1080):
     return colours
 
 
+def equal_images(uno, dos):
+    return ImageChops.difference(uno, dos).getbbox() is None
+
+
 def get_signature(image):
     print(image.getpixel((0, 0)))
     print(image.tostring())
@@ -33,9 +61,30 @@ def get_signature(image):
     return sum(values)
 
 
+def open_chrome():
+    time.sleep(1)
+
+    press("winkey")
+
+    time.sleep(1)
+
+    enter_phrase("chrome")
+    press("enter")
+
+    time.sleep(1)
+
+    press_hold_release("ctrl", "t")
+    enter_phrase("websudoku.com")
+    press("enter")
+    # press_hold_release("winkey", "up_arrow")
+
+    time.sleep(5)
+
+
 # takes ~1.7 seconds to turn target and sample into searchable arrays,
 #       ~12 seconds to search the whole thing unsuccessfully
 def find_target(target_in, sample_in=screen_grab(), debug=False):
+    # print_img(sample_in, "current")
     global start, middle, end
 
     start = time.clock()
@@ -99,11 +148,45 @@ def find_target(target_in, sample_in=screen_grab(), debug=False):
     return start_pos
 
 
+# takes ~1 second for full search
+def find_target_redux(target_in, sample_in=screen_grab()):
+    global start, middle, end
+    start = time.time()
+
+    t_width, t_height = target_in.size
+
+    l_target = target_in.load()
+    l_sample = sample_in.load()
+
+    middle = time.time()
+
+    for y in range(sample_in.size[1]):
+        for x in range(sample_in.size[0]):
+            if l_sample[x, y] == l_target[0, 0]:  # first pixel match
+
+                for column in range(t_width):
+                    if not (l_sample[x + column, y] == l_target[column, 0]):
+                        break
+
+                else:  # top row match
+
+                    for row in range(t_height):
+                        if not (l_sample[x, y + row] == l_target[0, row]):
+                            break
+
+                    else:  # first column match
+
+                        return x, y
+
+    end = time.time()
+    return None
+
+
 def get_puzzle(sudoku):
     loaded = sudoku.load()
 
     # magic numbers for character recognition
-    numbers = collections.OrderedDict()
+    numbers = OrderedDict()
     numbers[(9, 22, 15)] = []
     numbers[(6, 12, 17)] = []
     numbers[(4, 12, 19)] = []
@@ -154,27 +237,38 @@ def submit_puzzle(solved):
     for number in solved:
         press(str(number), 'tab', delay=0.005)
 
+    press_hold_release('shift', 'tab')
+    press('enter')
+
 
 def next_puzzle(puzzle_pos):
+    global runs
+    runs -= 1
+
     time.sleep(1)
 
-    print(puzzle_pos)
+    # print(puzzle_pos)
 
     # sample from left of puzzle and down for "How am I doing?"
-    sample = screen_grab(puzzle_pos[0] - 100, puzzle_pos[1] + 300, 210, 125)
-    print_img(sample, "test_images/how_search")
+    # sample = screen_grab(puzzle_pos[0] - 100,
+    # puzzle_pos[1] + 300, 210, 125)
+    # print_img(sample, "test_images/how_search")
+    #
+    # how_pos = find_target_redux(target_how_button, sample)
+    #
+    # if how_pos == (0, 0):
+    #     raise Exception("Couldn't find next button")
+    #
+    # move(how_pos[0] + puzzle_pos[0] - 100, how_pos[1] + puzzle_pos[1] + 300)
+    # left_click()  # next puzzle
+    #
+    # time.sleep(1.5)
 
-    how_pos = find_target(Image.open("images/how_button.png"), sample)
-    move(how_pos[0] + puzzle_pos[0] - 100, how_pos[1] + puzzle_pos[1] + 300)
-    left_click()  # next puzzle
-
-    time.sleep(1.5)
-
-    # check for "Bring on another" now
+    # check for "Bring on another"
     sample = screen_grab(puzzle_pos[0], puzzle_pos[1] + 50, 300, 300)
-    print_img(sample, "test_images/bring_search")
+    # print_img(sample, "test_images/bring_search")
 
-    bring_another = find_target(Image.open("images/bring_another.png"), sample)
+    bring_another = find_target_redux(target_bring_button, sample)
     if bring_another != (0, 0):
         # found bring
         move(bring_another[0] + puzzle_pos[0],
@@ -183,29 +277,38 @@ def next_puzzle(puzzle_pos):
         time.sleep(1)
 
     sample = screen_grab(puzzle_pos[0] - 100, puzzle_pos[1] - 100, 450, 500)
-    print_img(sample, "test_images/next_sudoku")
-    next_pos = find_target(Image.open("images/sudoku.png"), sample)
-    print(next_pos)
+    # print_img(sample, "test_images/next_sudoku")
+    next_pos = find_target_redux(target_img, sample)
+    # print(next_pos)
     current = (next_pos[0] + puzzle_pos[0] - 100,
                next_pos[1] + puzzle_pos[1] - 100)
     move(current[0] + 5, current[1] + 5)
     left_click()
     solve_puzzle(get_puzzle(screen_grab(current[0], current[1], 302, 299)))
 
-    next_puzzle(current)
+    if runs > 0:
+        print(runs, "runs" if runs > 1 else "run", "left")
+        next_puzzle(current)
+    else:
+        print("You get the point")
 
 
 if __name__ == '__main__':
-    target_img = Image.open("images/sudoku.png")
-    # solve_puzzle(get_puzzle(target_img))
+    open_chrome()
 
-    curr = find_target(target_img)
-    print("data prep", str(round(middle - start, 5)))
-    print("actual search", str(round(end - middle, 5)))
+    found = find_target_redux(target_img, screen_grab())
 
-    move(curr[0] + 5, curr[1] + 5)
-    left_click()
+    if found is None:
+        raise Exception("Couldn't find puzzle!")
 
-    solve_puzzle(get_puzzle(screen_grab(curr[0], curr[1], 302, 299)))
+    else:
+        print("Found puzzle! Going to try", runs, "runs")
 
-    next_puzzle(curr)
+        move(found[0] + 5, found[1] + 5)
+        left_click()
+
+        solve_puzzle(get_puzzle(screen_grab(found[0], found[1], 302, 299)))
+
+        next_puzzle(found)
+
+        input()

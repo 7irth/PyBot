@@ -67,6 +67,7 @@ VK_CODE = {'backspace': 0x08,
            'x': 0x58,
            'y': 0x59,
            'z': 0x5A,
+           'winkey': 0x5B,
            'numpad_0': 0x60,
            'numpad_1': 0x61,
            'numpad_2': 0x62,
@@ -123,7 +124,7 @@ VK_CODE = {'backspace': 0x08,
            'browser_favorites': 0xAB,
            'browser_start_and_home': 0xAC,
            'volume_mute': 0xAD,
-           'volume_Down': 0xAE,
+           'volume_down': 0xAE,
            'volume_up': 0xAF,
            'next_track': 0xB0,
            'previous_track': 0xB1,
@@ -206,3 +207,23 @@ def press(*args, delay=0.05):
         windows.keybd_event(VK_CODE[i], 0, 0, 0)
         time.sleep(delay)
         windows.keybd_event(VK_CODE[i], 0, win32con.KEYEVENTF_KEYUP, 0)
+
+
+def press_hold_release(*args, delay=0.05):
+    for i in args:
+        windows.keybd_event(VK_CODE[i], 0, 0, 0)
+        time.sleep(delay)
+
+    for i in args:
+        windows.keybd_event(VK_CODE[i], 0, win32con.KEYEVENTF_KEYUP, 0)
+        time.sleep(delay * 2)
+
+
+def enter_phrase(*args, delay=0.05):
+    for phrase in args:
+        for letter in phrase:
+            press(letter, delay=delay)
+
+
+def screen_size():
+    return windows.GetSystemMetrics(0), windows.GetSystemMetrics(1)
