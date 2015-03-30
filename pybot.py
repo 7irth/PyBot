@@ -15,8 +15,7 @@ def open_chrome():
 
     time.sleep(tom_delay)
 
-    enter_phrase("google")
-    press()
+    enter_phrase("google chrome")
     press("enter")
 
     time.sleep(tom_delay)
@@ -38,12 +37,12 @@ def get_puzzle(sudoku):
     # magic numbers for character recognition
     numbers = OrderedDict()
     numbers[(9, 22, 15)] = []
-    numbers[(6, 12, 17)] = []
+    numbers[(6, 12, 15)] = []
     numbers[(4, 12, 19)] = []
     numbers[(8, 13, 20)] = []
     numbers[(5, 14, 14)] = []
     numbers[(7, 22, 9)] = []
-    numbers[(2, 12, 13)] = []
+    numbers[(2, 21, 24)] = []
     numbers[(3, 13, 11)] = []
     numbers[(1, 15, 10)] = []
 
@@ -79,7 +78,7 @@ def solve_puzzle(given):
         submit_puzzle([number for row in sudoku.sudoku for number in row])
     else:
         # refresh and try again
-        input("Couldn't solve puzzle :(")
+        print("Couldn't solve puzzle :(")
 
 
 def submit_puzzle(solved):
@@ -106,7 +105,7 @@ def next_puzzle(puzzle_pos):
         move(bring_location[0] + puzzle_pos[0],
              bring_location[1] + puzzle_pos[1] + 50)
         left_click()
-        time.sleep(tom_delay)
+        time.sleep(tom_delay + 1)
 
     sample = screen_grab(puzzle_pos[0] - 100, puzzle_pos[1] - 100, 450, 500)
     # print_img(sample, "test_images/next_sudoku")
@@ -129,19 +128,17 @@ def next_puzzle(puzzle_pos):
 
 if __name__ == '__main__':
     print("PyBot! v0.0.2")
+    print("Enter time delay between steps -")
     tom_delay = float(input((
-        "Enter time delay between steps (1 second works for me, might need"
-        " a bit more for slower computers): ")))
+        "(1 second works for me, might need more for slower computers): ")))
 
     runs = int(float(input("Runs through the puzzle (try at least 2): ")))
+    print("Please don't move the mouse while the bot is working\n")
+    time.sleep(2)
 
     open_chrome()
 
-    start = time.time()
     img_loc = find_target_redux(target_img, screen_grab())
-    end = time.time()
-
-    print("Searching took", end - start)
 
     if img_loc is None:
         input("Couldn't find puzzle! Press the any key (it's enter) to exit")
@@ -156,4 +153,4 @@ if __name__ == '__main__':
 
         next_puzzle(img_loc)
 
-        input("Ironically, press enter to exit")  # to keep prompt open
+        input("\nIronically, press enter to exit")  # to keep prompt open

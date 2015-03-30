@@ -3,7 +3,7 @@ __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 from PIL import Image, ImageOps, ImageGrab, ImageChops
 import os
 from windows import *
-import numpy as np
+# import numpy as np
 import time
 
 
@@ -32,7 +32,7 @@ def screen_grab(x=0, y=0, x_size=screen_size()[0], y_size=screen_size()[1]):
 
 
 def print_img(image, description=str(int(time.time())), kind='PNG'):
-    image.save(os.getcwd() + '\\' + description + '.' + kind, kind)
+    image.save(os.getcwd() + '\\' + description + '.' + kind.lower(), kind)
 
 
 def grab(x=0, y=0, x_size=1920, y_size=1080):
@@ -69,62 +69,62 @@ def get_signature(image):
 
 # takes ~1.7 seconds to turn target and sample into searchable arrays,
 #       ~12 seconds to search the whole thing unsuccessfully
-def find_target(target_in, sample_in=screen_grab(), debug=False):
-    answer = 0
-
-    sample = np.array(sample_in.getdata())
-    s_width, s_height = sample_in.size
-
-    target = np.array(target_in.getdata())
-    t_width, t_height = target_in.size
-
-    # go through all pixels in sample image
-    for current_pix in range(0, sample.shape[0]):
-
-        if np.all(sample[current_pix] == target[0]):  # first pixel match
-            for column in range(t_width):
-                s = column + current_pix
-                t = column
-                if not (np.all(sample[s] == target[t])):
-                    break
-
-            else:  # top row match
-
-                for row in range(t_height):
-                    s = row * s_width + current_pix
-                    t = row * t_width
-
-                    if not (np.all(sample[s] == target[t])):
-                        break
-
-                else:  # first column match
-
-                    # TODO: make this work
-                    for row in range(1, t_height):
-                        for column in range(1, t_width):
-                            s = row * s_width + column + current_pix
-                            t = row * t_width + column
-
-                            if not (np.all(sample[s] == target[t])):
-                                break
-
-                    else:  # full match
-                        answer = current_pix
-                        break
-
-    start_pos = (answer % s_width, answer // s_width)
-
-    if debug:
-        print(answer)
-        print(start_pos)
-        print_img(target_in, "target")
-        print_img(sample_in, "input")
-        print_img(
-            sample_in.crop((start_pos[0], start_pos[1],
-                            start_pos[0] + t_width,
-                            start_pos[1] + t_height)), "found")
-
-    return start_pos
+# def find_target(target_in, sample_in=screen_grab(), debug=False):
+#     answer = 0
+#
+#     sample = np.array(sample_in.getdata())
+#     s_width, s_height = sample_in.size
+#
+#     target = np.array(target_in.getdata())
+#     t_width, t_height = target_in.size
+#
+#     # go through all pixels in sample image
+#     for current_pix in range(0, sample.shape[0]):
+#
+#         if np.all(sample[current_pix] == target[0]):  # first pixel match
+#             for column in range(t_width):
+#                 s = column + current_pix
+#                 t = column
+#                 if not (np.all(sample[s] == target[t])):
+#                     break
+#
+#             else:  # top row match
+#
+#                 for row in range(t_height):
+#                     s = row * s_width + current_pix
+#                     t = row * t_width
+#
+#                     if not (np.all(sample[s] == target[t])):
+#                         break
+#
+#                 else:  # first column match
+#
+#                     # TODO: make this work
+#                     for row in range(1, t_height):
+#                         for column in range(1, t_width):
+#                             s = row * s_width + column + current_pix
+#                             t = row * t_width + column
+#
+#                             if not (np.all(sample[s] == target[t])):
+#                                 break
+#
+#                     else:  # full match
+#                         answer = current_pix
+#                         break
+#
+#     start_pos = (answer % s_width, answer // s_width)
+#
+#     if debug:
+#         print(answer)
+#         print(start_pos)
+#         print_img(target_in, "target")
+#         print_img(sample_in, "input")
+#         print_img(
+#             sample_in.crop((start_pos[0], start_pos[1],
+#                             start_pos[0] + t_width,
+#                             start_pos[1] + t_height)), "found")
+#
+#     return start_pos
 
 
 # takes ~1 second for full search
@@ -158,8 +158,8 @@ def find_target_redux(target_in, sample_in=screen_grab()):
 
 
 if __name__ == "__main__":
-    a = Image.open('images/old_bring.png')
-    b = Image.open('images/bring_button.png')
+    a = Image.open('test_images/found_1.png')
+    b = Image.open('test_images/found_2.png')
 
     print(equal_images(a, b))
 
