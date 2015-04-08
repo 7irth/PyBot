@@ -5,7 +5,7 @@ import os
 from windows import *
 # import numpy as np
 import time
-
+from sklearn import datasets
 
 # EMBEDDED IMAGE FILES
 
@@ -158,15 +158,20 @@ def find_target_redux(target_in, sample_in=screen_grab()):
 
 
 if __name__ == "__main__":
-    a = Image.open('test_images/found_1.png')
-    b = Image.open('test_images/found_2.png')
+    background = (249, 249, 255)
 
-    print(equal_images(a, b))
+    a = Image.open('test_images/found_1.png')
+    b = Image.open('test_images/ffdoku.png')
 
     la = a.load()
     lb = b.load()
 
-    for i in range(a.size[1]):
-        for j in range(a.size[0]):
-            if not (close_enough(la[j, i], lb[j, i])):
-                print(i, j)
+    # for i in range(a.size[1]):
+    #     for j in range(a.size[0]):
+    #         if not (close_enough(la[j, i], lb[j, i])):
+    #             print(i, j)
+
+    iris = datasets.load_iris()
+    digits = datasets.load_digits()
+
+    print(digits.data)
