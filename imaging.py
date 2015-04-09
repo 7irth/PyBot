@@ -70,9 +70,8 @@ def get_signature(image):
 def tesseract(image):
     print_img(image, 'temp_img')
 
-    # run tesseract with given image
-    tess = Popen([os.getcwd() + '\\libs\\tesseract',
-                  'temp_img.png', 'temp'],
+    # run tesseract with given image (single digit mode)
+    tess = Popen(['tesseract', 'temp_img.png', 'temp', '-psm', '10', 'digits'],
                  stdout=PIPE, stderr=PIPE)
 
     outs, errs = tess.communicate()
@@ -81,7 +80,7 @@ def tesseract(image):
     try:
         if tess.returncode == 0:
             with open('temp.txt', 'r') as f:
-                result = f.read()
+                result = f.read().strip()
             os.remove(f.name)
             return result
         else:
@@ -180,6 +179,6 @@ def find_target_redux(target_in, sample_in=screen_grab()):
 
 
 if __name__ == "__main__":
-    a = Image.open('test_images\how_search.png')
+    a = Image.open('capture.png')
 
     print(tesseract(a))

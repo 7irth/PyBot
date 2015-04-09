@@ -35,6 +35,66 @@ def switch_to_evil():
     pass
 
 
+def get_puzzle_redux(sudoku_img):
+    puzzle = sudoku_img.load()
+    first = None
+
+    # initialize new puzzle
+    sudoku = [0 for _ in range(81)]
+
+    border = puzzle[0, 0]
+
+    # find top left cell
+    for i in range(9):
+        if puzzle[i, i] != border:
+            first = [i, i]
+            break
+
+    if first:
+        c = list(first)
+
+        x_size = c[0] - 1
+        while puzzle[c[0], c[1]] == puzzle[c[0], c[1] + 1]:  # same colour row
+            c[1] += 1
+            x_size += 1
+
+        y_size = c[1] - x_size
+        while puzzle[c[0], c[1]] == puzzle[c[0] + 1, c[1]]:  # same colour col
+            c[0] += 1
+            y_size += 1
+
+        cell_size = [x_size, y_size]
+
+        x = 0  # aliases for
+        y = 1  # readability
+
+        current = list(first)
+        for row in range(9):
+            for col in range(9):
+
+                if row in [2, 5, 8]:  # irregular cell size TODO: make elegant
+                    cell_size[y] -= 1
+
+                cell = sudoku_img.crop((current[x], current[y],
+                                        current[x] + cell_size[x],
+                                        current[y] + cell_size[y]))
+
+                if row in [2, 5, 8]:
+                    cell_size[y] += 1
+
+                value = tesseract(cell)
+
+                sudoku[row * 9 + col] = int(value) if value != '' else 0
+
+                # compensate for thicker column breaks
+                current[x] += cell_size[x] + (2 if col in [2, 5] else 1)
+
+            current[y] += cell_size[y] + 1  # compensate for row breaks
+            current[x] = first[x]
+
+    return sudoku
+
+
 def get_puzzle(sudoku):
     loaded = sudoku.load()
 
@@ -55,8 +115,8 @@ def get_puzzle(sudoku):
     for row in range(9):
         for col in range(9):
             for number in numbers:
-                x = number[1] + 33 * col
-                y = number[2] + 33 * row
+                x = number[1] + col * 33  # width of the box
+                y = number[2] + row * 33  # height of the box
 
                 if col > 2:
                     x += 1
@@ -67,21 +127,25 @@ def get_puzzle(sudoku):
                 if (row, col) not in got and (loaded[x, y] != (255, 255, 255)):
                     numbers[number].append((row, col))
                     got.append((row, col))
-    return numbers
 
-
-def solve_puzzle(given):
-    sudoku = solver.Sudoku()
+    # initialize new puzzle
     puzzle = [0 for _ in range(81)]
 
-    for n in given:
-        for thing in given[n]:
+    # fill with given values
+    for n in numbers:
+        for thing in numbers[n]:
             puzzle[thing[0] * 9 + thing[1]] = n[0]
+
+    return puzzle
+
+
+def solve_puzzle(puzzle):
+    sudoku = solver.Sudoku()
 
     if sudoku.get_input(puzzle) and sudoku.solve():
         submit_puzzle([number for row in sudoku.sudoku for number in row])
     else:
-        # refresh and try again
+        # TODO: refresh and try again
         print("Couldn't solve puzzle :(")
 
 
@@ -121,7 +185,8 @@ def next_puzzle(puzzle_pos):
                next_pos[1] + puzzle_pos[1] - 100)
     move(current[0] + 5, current[1] + 5)
     left_click()
-    solve_puzzle(get_puzzle(screen_grab(current[0], current[1], 302, 299)))
+    solve_puzzle(get_puzzle_redux(
+        screen_grab(current[0], current[1], 302, 299)))
 
     if runs > 0:
         print(runs, "runs" if runs > 1 else "run", "left")
@@ -134,10 +199,10 @@ def next_puzzle(puzzle_pos):
 
 def go():
     global runs
-    runs = int(float(input("Runs through the puzzle (try at least 2): ")))
-
-    print("Please don't move the mouse while the bot is working\n")
-    time.sleep(tom_delay)
+    # runs = int(float(input("Runs through the puzzle (try at least 2): ")))
+    #
+    # print("Please don't move the mouse while the bot is working\n")
+    # time.sleep(tom_delay)
 
     # open_sudoku_on_chrome()
 
@@ -147,20 +212,20 @@ def go():
         if debug:
             print_img(screen_grab(), "send_to_tirth/no_joy")
         input("Couldn't find puzzle! Press the any key (it's enter) to exit")
-    
+
     else:
         print("Found puzzle! Going to try", runs, "runs")
-    
+
         move(img_loc[0] + 5, img_loc[1] + 5)
         left_click()
-    
+
         if debug:
             print_img(screen_grab(img_loc[0], img_loc[1], 302, 299),
                       "send_to_tirth/initial_found_puzzle")
-    
-        solve_puzzle(get_puzzle(
+
+        solve_puzzle(get_puzzle_redux(
             screen_grab(img_loc[0], img_loc[1], 302, 299)))
-    
-        next_puzzle(img_loc)
-    
+
+        # next_puzzle(img_loc)
+
         input("\nIronically, press enter to exit")  # to keep prompt open

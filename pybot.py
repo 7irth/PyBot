@@ -4,14 +4,13 @@ version = "0.0.2"
 import sudoku_stuff
 from imaging import *
 
-debug = True
+debug = False
 functions = ["sudoku", "kill all humans"]
-choice = ""
 tom_delay = 1
 
 
 def greeting():
-    global tom_delay, choice
+    global tom_delay
 
     print("PyBot! v" + version, end='')
     if debug:
@@ -23,16 +22,18 @@ def greeting():
     tom_delay = float(input((
         "(1 second works for me, might need more for slower computers): ")))
 
-    choice = input("Pick a function! Options - " + str(functions) + ": ")
+    picked = input("Pick a function - " + str(functions) + ": ")
 
-    while choice not in functions:
-        choice = input("Invalid choice, try again foo': ")
-        if choice == "exit":
+    while picked not in functions:
+        picked = input("Invalid choice, try again foo': ")
+        if picked == "exit":
             exit()
+
+    return picked
 
 
 if __name__ == '__main__':
-    greeting()
+    # choice = greeting()
 
-    if choice == "sudoku":
+    # if choice == "sudoku":
         sudoku_stuff.go()
