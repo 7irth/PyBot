@@ -7,6 +7,9 @@ from windows import *
 import time
 from subprocess import Popen, PIPE
 
+# location of tesseract command
+tesseract = os.getcwd() + '\\libs\\tesseract'
+
 # EMBEDDED IMAGE FILES
 
 # import base64
@@ -51,8 +54,8 @@ def close_enough(pix1, pix2, tolerance=2):
         return True
 
     elif tolerance != 0:
-        for sub in range(3):
-            if not (abs(pix1[sub] - pix2[sub]) < tolerance):
+        for sub_pixel in range(len(pix1)):
+            if not (abs(pix1[sub_pixel] - pix2[sub_pixel]) < tolerance):
                 break
         else:
             return True
@@ -60,6 +63,7 @@ def close_enough(pix1, pix2, tolerance=2):
     return False
 
 
+# incomplete
 def get_signature(image):
     print(image.getpixel((0, 0)))
     print(image.tostring())
@@ -67,11 +71,11 @@ def get_signature(image):
     return sum(values)
 
 
-def tesseract(image):
+def tesser(image):
     print_img(image, 'temp_img')
 
     # run tesseract with given image (single digit mode)
-    tess = Popen(['tesseract', 'temp_img.png', 'temp', '-psm', '10', 'digits'],
+    tess = Popen([tesseract, 'temp_img.png', 'temp', '-psm', '10', 'digits'],
                  stdout=PIPE, stderr=PIPE)
 
     outs, errs = tess.communicate()
@@ -149,36 +153,36 @@ def tesseract(image):
 
 
 # takes ~1 second for full search
-def find_target_redux(target_in, sample_in=screen_grab()):
+def find_target_by_edges(target_in, sample_in=screen_grab()):
     t_width, t_height = target_in.size
     s_width, s_height = sample_in.size
 
-    l_target = target_in.load()
-    l_sample = sample_in.load()
+    target = target_in.load()
+    sample = sample_in.load()
 
     for y in range(s_height):
         for x in range(s_width):
-            if close_enough(l_sample[x, y], l_target[0, 0], 1):  # first pixel
+            if close_enough(sample[x, y], target[0, 0], 1):  # first pixel
 
                 for column in range(t_width):
-                    if not close_enough(l_sample[x + column, y],
-                                        l_target[column, 0]):
+                    if not close_enough(sample[x + column, y],
+                                        target[column, 0]):
                         break
 
                 else:  # top row match
 
                     for row in range(t_height):
-                        if not close_enough(l_sample[x, y + row],
-                                            l_target[0, row]):
+                        if not close_enough(sample[x, y + row],
+                                            target[0, row]):
                             break
 
                     else:  # first column match
 
                         return x, y
-    return None
+    return None, None
 
 
 if __name__ == "__main__":
     a = Image.open('capture.png')
 
-    print(tesseract(a))
+    print(tesser(a))
