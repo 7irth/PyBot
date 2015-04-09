@@ -5,7 +5,7 @@ import sudoku_stuff
 from imaging import *
 
 debug = True
-functions = ["sudoku"]
+functions = ["sudoku", "kill all humans"]
 choice = ""
 tom_delay = 1
 
@@ -23,13 +23,13 @@ def greeting():
     tom_delay = float(input((
         "(1 second works for me, might need more for slower computers): ")))
 
-    choice = input("Pick a function! Current choice(s) - " +
-                   str(functions) + ": ")
+    choice = input("Pick a function! Options - " + str(functions) + ": ")
 
     while choice not in functions:
         choice = input("Invalid choice, try again foo': ")
         if choice == "exit":
             exit()
+
 
 if __name__ == '__main__':
     greeting()

@@ -5,7 +5,7 @@ import os
 from windows import *
 # import numpy as np
 import time
-from sklearn import datasets
+from subprocess import Popen, PIPE
 
 # EMBEDDED IMAGE FILES
 
@@ -66,6 +66,28 @@ def get_signature(image):
     values = ImageOps.grayscale(image).getcolors()
     return sum(values)
 
+
+def tesseract(image):
+    print_img(image, 'temp_img')
+
+    # run tesseract with given image
+    tess = Popen([os.getcwd() + '\\libs\\tesseract',
+                  'temp_img.png', 'temp'],
+                 stdout=PIPE, stderr=PIPE)
+
+    outs, errs = tess.communicate()
+
+    # return results and clean up
+    try:
+        if tess.returncode == 0:
+            with open('temp.txt', 'r') as f:
+                result = f.read()
+            os.remove(f.name)
+            return result
+        else:
+            print(errs)
+    finally:
+        os.remove('temp_img.png')
 
 # takes ~1.7 seconds to turn target and sample into searchable arrays,
 #       ~12 seconds to search the whole thing unsuccessfully
@@ -158,20 +180,6 @@ def find_target_redux(target_in, sample_in=screen_grab()):
 
 
 if __name__ == "__main__":
-    background = (249, 249, 255)
+    a = Image.open('test_images\how_search.png')
 
-    a = Image.open('test_images/found_1.png')
-    b = Image.open('test_images/ffdoku.png')
-
-    la = a.load()
-    lb = b.load()
-
-    # for i in range(a.size[1]):
-    #     for j in range(a.size[0]):
-    #         if not (close_enough(la[j, i], lb[j, i])):
-    #             print(i, j)
-
-    iris = datasets.load_iris()
-    digits = datasets.load_digits()
-
-    print(digits.data)
+    print(tesseract(a))
