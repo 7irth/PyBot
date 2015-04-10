@@ -66,16 +66,17 @@ class Sudoku:
             self.fill_empties()
             for empty in self.empties.keys():
                 if len(self.empties[empty][3]) == 0:
-                    print('Invalid puzzle')
+                    if self.out:
+                        print('Invalid puzzle')
                     return False
 
             for thing in rows_cols_boxes:
                 for number in thing:  # numbers not repeated and in range
                     if number != 0 and not (thing.count(number) == 1
                                             and (1 <= number <= 9)):
-                        print('Invalid puzzle')
+                        if self.out:
+                            print('Invalid puzzle')
                         return False
-
         return True
 
     def get_stuff(self):
