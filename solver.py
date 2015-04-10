@@ -22,7 +22,6 @@ class Sudoku:
     def __init__(self, size=9, max_iterations=10000, debug_print=False):
         self.size = size
         self.sudoku = [[0 for _ in range(size)] for _ in range(size)]
-        # self.sudoku = [[Cell(i, j) for i in range(size)] for j in range(size)]
         self.empties, self.box_empties, self.tried = {}, {}, {}
         self.current = 0
         self.max_iter = max_iterations
@@ -39,6 +38,9 @@ class Sudoku:
                     self.sudoku[row][cell] = \
                         int(puzzle[row * len(self.sudoku) + cell])
         else:
+            print('Congratulations! You\'ve broken the program, as a result '
+                  'you\'ve unlocked a manual sudoku solver. (It was more '
+                  'annoying to remove it than to just leave it in here)')
             print('Enter numbers left to right, row by row, top to bottom, '
                   'no spaces, 0 for blank: ')
 
@@ -64,6 +66,9 @@ class Sudoku:
         else:  # make sure it's valid to start, possible without solution?
 
             self.fill_empties()
+            if len(self.empties) > 64:  # unique solution impossible
+                return False
+
             for empty in self.empties.keys():
                 if len(self.empties[empty][3]) == 0:
                     if self.out:

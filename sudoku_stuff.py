@@ -2,37 +2,49 @@ __author__ = 'Tirth'
 
 import solver
 from collections import OrderedDict
-from imaging import *
-from pybot import tom_delay, debug
+from pybot import *
 
 runs = 3
 
 
 def open_sudoku_on_chrome():
-    time.sleep(tom_delay)
+    chill_out_for_a_bit()
 
     press("winkey")
 
-    time.sleep(tom_delay)
+    chill_out_for_a_bit()
 
     enter_phrase("google chrome")
     press("enter")
 
-    time.sleep(tom_delay)
+    chill_out_for_a_bit()
 
     press_hold_release("ctrl", "t")
 
-    time.sleep(tom_delay)
+    chill_out_for_a_bit()
 
     enter_phrase("websudoku.com")
     press("enter")
     # press_hold_release("winkey", "up_arrow")
 
-    time.sleep(tom_delay + 3)
+    chill_out_for_a_bit(3)
 
 
 def switch_to_evil():
     pass
+
+
+# size of ?shaped box with a top left corner at (x, y)
+def get_box_size(puzzle, x, y):
+    first_x, first_y = int(x), int(y)
+
+    while close_enough(puzzle[x, y], puzzle[x + 1, y]):  # check row
+        x += 1
+
+    while close_enough(puzzle[x, y], puzzle[x, y + 1]):  # check col
+        y += 1
+
+    return x - first_x + 1, y - first_y + 1  # x_size, y_size ?
 
 
 # returns coordinates and size of puzzle
@@ -45,7 +57,6 @@ def find_puzzle(sample_in=screen_grab()):
     sample = sample_in.load()
 
     x, y = -1, -1
-    first_x, first_y, x_size, y_size = 0, 0, 0, 0
 
     while y + 1 < rows:
         y += 1  # next row
@@ -54,20 +65,11 @@ def find_puzzle(sample_in=screen_grab()):
         while x + 1 < columns:
             x += 1  # next column
 
-            if close_enough(sample[x, y], init_pixel, 1):
-                first_x, first_y = x, y
+            if close_enough(sample[x, y], init_pixel, 1):  # first pixel match
+                size = get_box_size(sample, x, y)
 
-                while close_enough(sample[x, y], sample[x + 1, y]):  # row
-                    x += 1
-                x_size = x - first_x + 1
-
-                x = first_x  # reset x
-                while close_enough(sample[x, y], sample[x, y + 1]):  # col
-                    y += 1
-                y_size = y - first_y + 1
-
-                if x_size > min_x_size and y_size > min_y_size:
-                    return first_x, first_y, x_size, y_size
+                if size > (min_x_size, min_y_size):
+                    return x, y, size[0], size[1]
 
     return None, None, None, None
 
@@ -77,8 +79,6 @@ def get_puzzle(sudoku_img):
     puzzle = sudoku_img.load()
     puzzle_size = 9
 
-    first = None
-
     # initialize new puzzle
     sudoku = [0 for _ in range(81)]
 
@@ -87,56 +87,40 @@ def get_puzzle(sudoku_img):
     # find top left cell
     for i in range(puzzle_size):
         if puzzle[i, i] != border:
-            first = [i, i]
-            break
+            x, y = i, i
 
-    if first:
-        x = first[0]
-        y = first[1]
+            x_size, y_size = get_box_size(puzzle, x, y)
 
-        x_size = 1
-        while close_enough(puzzle[x, y], puzzle[x, y + 1]):  # check row
-            y += 1
-            x_size += 1
+            for row in range(puzzle_size):
+                for col in range(puzzle_size):
 
-        y_size = 1
-        while close_enough(puzzle[x, y], puzzle[x + 1, y]):  # check col
-            x += 1
-            y_size += 1
+                    # correct box size
+                    x_size, y_size = get_box_size(puzzle, x, y)
 
-        x = first[0]  # reset
-        y = first[1]  # current
+                    cell = sudoku_img.crop((x, y, x + x_size, y + y_size))
 
-        for row in range(puzzle_size):
-            for col in range(puzzle_size):
+                    if debug:
+                        print_img(cell, 'all/' + str(row * puzzle_size + col))
 
-                if row in [2, 5, 8]:  # irregular cell size TODO: make elegant
-                    y_size -= 1
+                    # retrieve value from OCR and fill in puzzle
+                    try:
+                        sudoku[row * puzzle_size + col] = int(tesser(cell))
+                    except ValueError:
+                        pass
 
-                cell = sudoku_img.crop((x, y, x + x_size, y + y_size))
+                    # compensate for thicker column breaks
+                    x += x_size + (2 if col in [2, 5] else 1)
 
-                if row in [2, 5, 8]:
-                    y_size += 1
+                # compensate for row breaks
+                y += y_size + (2 if row in [2, 5] else 1)
+                x -= x_size * puzzle_size + 11  # reset to start
 
-                # print_img(cell, 'all/' + str(row * 9 + col))
-
-                # retrieve value from OCR and fill in puzzle
-                try:
-                    sudoku[row * puzzle_size + col] = int(tesser(cell))
-                except ValueError:
-                    pass
-
-                # compensate for thicker column breaks
-                x += x_size + (2 if col in [2, 5] else 1)
-
-            y += y_size + 1  # compensate for row breaks
-            x = first[0]
-
+            return sudoku
     return sudoku
 
 
 # returns array of given values in puzzle using magic numbers
-def get_puzzle_old(sudoku):
+def get_puzzle_hack(sudoku):
     loaded = sudoku.load()
 
     # magic numbers for character recognition
@@ -181,15 +165,23 @@ def get_puzzle_old(sudoku):
 
 
 # takes in picture of puzzle, then solves and submits it
-def solve_puzzle(puzzle):
+def solve_puzzle(sudoku_img):
     sudoku = solver.Sudoku()
+    found = False
 
-    # try fast, likely inaccurate hack read, and slow accurate OCR read
-    if sudoku.get_input(get_puzzle_old(puzzle)) \
-        or sudoku.get_input(get_puzzle(puzzle)) \
-            and sudoku.solve():
+    with Timer('getting numbers the easy way'):
+        if sudoku.get_input(get_puzzle_hack(sudoku_img)):
+            found = True
+
+    if not found:
+        with Timer('getting numbers the hard way'):
+            if sudoku.get_input(get_puzzle(sudoku_img)):
+                found = True
+
+    if found:
+        with Timer('solving the puzzle'):
+            sudoku.solve()
         submit_puzzle([number for row in sudoku.sudoku for number in row])
-
     else:
         # TODO: refresh and try again
         print("Couldn't solve puzzle :(")
@@ -205,14 +197,13 @@ def submit_puzzle(solved):
 
 def next_puzzle(img_x, img_y):
     global runs
-    runs -= 1
 
     if runs > 0:
-        time.sleep(tom_delay)
+        chill_out_for_a_bit()
 
-        # find button for next puzzle
-        bring_x, bring_y = find_target_by_edges(
-            target_bring_button, screen_grab(img_x, img_y + 50, 300, 300))
+        with Timer("finding the button for next puzzle"):
+            bring_x, bring_y = find_target_by_edges(
+                target_bring_button, screen_grab(img_x, img_y + 50, 300, 300))
 
         if bring_x is None:
             if debug:
@@ -223,10 +214,10 @@ def next_puzzle(img_x, img_y):
         else:
             move(bring_x + img_x, bring_y + img_y + 50)
             left_click()
-            time.sleep(tom_delay + 1)
+            chill_out_for_a_bit(1)
 
-            # find and solve next puzzle
-            next_x, next_y, x_size, y_size = find_puzzle()
+            with Timer('finding the next puzzle'):
+                next_x, next_y, x_size, y_size = find_puzzle()
 
             if next_x is None:
                 if debug:
@@ -234,12 +225,16 @@ def next_puzzle(img_x, img_y):
                 print("Couldn't find puzzle this time :(")
 
             else:
+                if debug:
+                    print_img(screen_grab(), "send_to_tirth/next_sudoku")
+
                 move(next_x + 5, next_y + 5)
                 left_click()
 
                 solve_puzzle((screen_grab(next_x, next_y, x_size, y_size)))
 
-                print(runs, "runs" if runs > 1 else "run", "left")
+                runs -= 1
+                print(runs, "runs" if runs != 1 else "run", "left")
                 next_puzzle(next_x, next_y)
 
     else:
@@ -253,11 +248,12 @@ def go():
     # runs = int(float(input("Runs through the puzzle (try at least 2): ")))
     #
     # print("Please don't move the mouse while the bot is working\n")
-    # time.sleep(tom_delay)
+    # chill_out_for_a_bit()
 
     # open_sudoku_on_chrome()
 
-    img_x, img_y, x_size, y_size = find_puzzle()
+    with Timer('finding the puzzle'):
+        img_x, img_y, x_size, y_size = find_puzzle()
 
     if img_x is None:
         if debug:
@@ -276,6 +272,6 @@ def go():
 
         solve_puzzle(puzzle)
 
-        # next_puzzle(img_x, img_y)
+        next_puzzle(img_x, img_y)
 
         input("\nIronically, press enter to exit")  # to keep prompt open
