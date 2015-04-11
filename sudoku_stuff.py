@@ -1,4 +1,4 @@
-__author__ = 'Tirth'
+__author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
 import solver
 from collections import OrderedDict
@@ -34,7 +34,7 @@ def switch_to_evil():
     pass
 
 
-# size of ?shaped box with a top left corner at (x, y)
+# size of ? shaped box with a top left corner at (x, y)
 def get_box_size(puzzle, x, y):
     first_x, first_y = int(x), int(y)
 
@@ -65,7 +65,7 @@ def find_puzzle(sample_in=screen_grab()):
         while x + 1 < columns:
             x += 1  # next column
 
-            if close_enough(sample[x, y], init_pixel, 1):  # first pixel match
+            if close_enough(sample[x, y], init_pixel, 3):  # first pixel match
                 size = get_box_size(sample, x, y)
 
                 if size > (min_x_size, min_y_size):
@@ -104,7 +104,8 @@ def get_puzzle(sudoku_img):
 
                     # retrieve value from OCR and fill in puzzle
                     try:
-                        sudoku[row * puzzle_size + col] = int(tesser(cell))
+                        sudoku[row * puzzle_size + col] = \
+                            int(tesser(cell, '10', 'digits'))
                     except ValueError:
                         pass
 
@@ -184,7 +185,11 @@ def solve_puzzle(sudoku_img):
         submit_puzzle([number for row in sudoku.sudoku for number in row])
     else:
         # TODO: refresh and try again
-        print("Couldn't solve puzzle :(")
+        raise SudokuException
+
+
+class SudokuException(Exception):
+    pass
 
 
 def submit_puzzle(solved):
@@ -195,38 +200,47 @@ def submit_puzzle(solved):
     press('enter')
 
 
-def next_puzzle(img_x, img_y):
+def next_puzzle(old_x, old_y, old_x_size, old_y_size):
     global runs
 
     if runs > 0:
         chill_out_for_a_bit()
 
+        bring_search = screen_grab(old_x, old_y, old_x_size, old_y_size)
         with Timer("finding the button for next puzzle"):
-            bring_x, bring_y = find_target_by_edges(
-                target_bring_button, screen_grab(img_x, img_y + 50, 300, 300))
+            buttons = find_buttons(bring_search)
 
-        if bring_x is None:
-            if debug:
-                print_img(screen_grab(img_x, img_y + 50, 300, 300),
-                          "send_to_tirth/bring_search")
-            print("Couldn't find button for next puzzle")
+        try:
+            bring_x, bring_y, bring_x_size, bring_y_size = \
+                buttons['Bring on a new puzzle!']
 
-        else:
-            move(bring_x + img_x, bring_y + img_y + 50)
+            bring_x += bring_x_size // 2 + old_x
+            bring_y += bring_y_size // 2 + old_y
+
+            move(bring_x, bring_y)
             left_click()
             chill_out_for_a_bit(1)
 
+            # increased search area for next puzzle
+            old_x -= 50
+            old_y -= 50
+
+            next_search = screen_grab(old_x, old_y,
+                                      old_x_size + 100, old_y_size + 100)
+
+            print_img(next_search, "send_to_tirth/next_sudoku")
+
             with Timer('finding the next puzzle'):
-                next_x, next_y, x_size, y_size = find_puzzle()
+                next_x, next_y, x_size, y_size = find_puzzle(next_search)
 
             if next_x is None:
                 if debug:
-                    print_img(screen_grab(), "send_to_tirth/next_sudoku")
+                    print_img(next_search, "send_to_tirth/next_sudoku")
                 print("Couldn't find puzzle this time :(")
 
             else:
-                if debug:
-                    print_img(screen_grab(), "send_to_tirth/next_sudoku")
+                next_x += old_x
+                next_y += old_y
 
                 move(next_x + 5, next_y + 5)
                 left_click()
@@ -235,7 +249,12 @@ def next_puzzle(img_x, img_y):
 
                 runs -= 1
                 print(runs, "runs" if runs != 1 else "run", "left")
-                next_puzzle(next_x, next_y)
+                next_puzzle(next_x, next_y, x_size, y_size)
+
+        except KeyError:
+            if debug:
+                print_img(bring_search, "send_to_tirth/bring_search")
+            print("Couldn't find button for next puzzle")
 
     else:
         # press_hold_release("winkey", "down_arrow")
@@ -245,12 +264,12 @@ def next_puzzle(img_x, img_y):
 
 def go():
     global runs
-    # runs = int(float(input("Runs through the puzzle (try at least 2): ")))
-    #
-    # print("Please don't move the mouse while the bot is working\n")
-    # chill_out_for_a_bit()
+    runs = int(float(input("Runs through the puzzle (try at least 2): ")))
 
-    # open_sudoku_on_chrome()
+    print("Please don't move and/or breathe while the bot is working\n")
+    chill_out_for_a_bit()
+
+    open_sudoku_on_chrome()
 
     with Timer('finding the puzzle'):
         img_x, img_y, x_size, y_size = find_puzzle()
@@ -270,8 +289,10 @@ def go():
         if debug:
             print_img(puzzle, "send_to_tirth/initial_found_puzzle")
 
-        solve_puzzle(puzzle)
-
-        next_puzzle(img_x, img_y)
+        try:
+            solve_puzzle(puzzle)
+            next_puzzle(img_x, img_y, x_size, y_size)
+        except SudokuException:
+            print("Couldn't solve puzzle :(")
 
         input("\nIronically, press enter to exit")  # to keep prompt open

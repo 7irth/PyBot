@@ -7,7 +7,7 @@ from imaging import *
 debug = True
 timings = True
 functions = ["sudoku", "kill all humans"]
-tom_delay = 3
+tom_delay = 1
 
 
 def greeting():
