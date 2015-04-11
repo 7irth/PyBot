@@ -11,14 +11,11 @@ tom_delay = 1
 
 
 def greeting():
-    global tom_delay
+    global tom_delay, debug, timings
 
-    print("PyBot! v" + version, end='')
-    if debug:
-        print("-debug")
-        os.makedirs("send_to_tirth", exist_ok=True)
-    else:
-        print()
+    # debug = timings = True if input('Debug? (y/n) ') == 'y' else False
+
+    print("PyBot! v" + version + ('-debug' if debug else ""))
     print("Enter time delay between steps -")
     tom_delay = float(input((
         "(1 second works for me, might need more for slower computers): ")))
@@ -33,8 +30,8 @@ def greeting():
     return picked
 
 
-def chill_out_for_a_bit(extra=0):
-    delay = tom_delay + extra
+def chill_out_for_a_bit(extra_delay=0):
+    delay = tom_delay + extra_delay
     if timings:
         print("sleeping for", delay, "seconds" if delay != 1 else "second")
     time.sleep(delay)

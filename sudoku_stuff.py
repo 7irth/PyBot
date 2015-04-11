@@ -27,8 +27,6 @@ def open_sudoku_on_chrome():
     press("enter")
     # press_hold_release("winkey", "up_arrow")
 
-    chill_out_for_a_bit(3)
-
 
 def switch_to_evil():
     pass
@@ -266,17 +264,20 @@ def go():
     global runs
     runs = int(float(input("Runs through the puzzle (try at least 2): ")))
 
-    print("Please don't move and/or breathe while the bot is working\n")
-    chill_out_for_a_bit()
+    print("Please don't move and/or breathe while the bot is working,\n"
+          "and keep your arms and legs inside the ride at all times\n")
 
     open_sudoku_on_chrome()
+    chill_out_for_a_bit(2)
+
+    initial_search = screen_grab()
 
     with Timer('finding the puzzle'):
-        img_x, img_y, x_size, y_size = find_puzzle()
+        img_x, img_y, x_size, y_size = find_puzzle(initial_search)
 
     if img_x is None:
         if debug:
-            print_img(screen_grab(), "send_to_tirth/no_joy")
+            print_img(initial_search, "send_to_tirth/no_joy")
         input("Couldn't find puzzle! Press the any key (it's enter) to exit")
 
     else:

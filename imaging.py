@@ -1,6 +1,7 @@
 __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
 import os
+from re import finditer
 from PIL import Image, ImageOps, ImageGrab, ImageChops
 from windows import *
 from subprocess import Popen, PIPE
@@ -14,6 +15,11 @@ def screen_grab(x=0, y=0, x_size=screen_size()[0], y_size=screen_size()[1]):
 
 
 def print_img(image, description=str(int(time.time())), kind='PNG'):
+    # make sure required folders exist
+    folders = [-1] + [found.start() for found in finditer('/', description)]
+    for i in range(len(folders) - 1):
+        os.makedirs(description[folders[i] + 1:folders[i + 1]], exist_ok=True)
+
     image.save(os.getcwd() + '\\' + description + '.' + kind.lower(), kind)
 
 

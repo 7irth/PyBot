@@ -4,6 +4,9 @@ import win32api as windows
 import win32con
 import time
 
+# build command > python -m py2exe.build_exe pybot.py -c -b 0 -x tkinter
+# -x unittest -x urllib -x ssl
+
 # dictionary to hold key name and VK value
 VK_CODE = {'backspace': 0x08,
            'tab': 0x09,
