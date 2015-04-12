@@ -2,7 +2,7 @@ __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
 import win32api as windows
 import win32con
-import time
+from time import sleep
 
 # build command > python -m py2exe.build_exe pybot.py -c -b 0 -x tkinter
 # -x unittest -x urllib -x ssl
@@ -167,34 +167,34 @@ def scroll_down(amount):
 
 def left_click(delay=0.1):
     left_down()
-    time.sleep(delay)
+    sleep(delay)
     left_up()
 
 
 def right_click(delay=0.1):
     left_down()
-    time.sleep(delay)
+    sleep(delay)
     right_up()
 
 
 def left_down(x=0, y=0, delay=0.1):
     windows.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, x, y)
-    time.sleep(delay)
+    sleep(delay)
 
 
 def left_up(x=0, y=0, delay=0.1):
     windows.mouse_event(win32con.MOUSEEVENTF_LEFTUP, x, y)
-    time.sleep(delay)
+    sleep(delay)
 
 
 def right_down(x=0, y=0, delay=0.1):
     windows.mouse_event(win32con.MOUSEEVENTF_RIGHTDOWN, x, y)
-    time.sleep(delay)
+    sleep(delay)
 
 
 def right_up(x=0, y=0, delay=0.1):
     windows.mouse_event(win32con.MOUSEEVENTF_RIGHTUP, x, y)
-    time.sleep(delay)
+    sleep(delay)
 
 
 def move(x, y):
@@ -208,18 +208,18 @@ def current_position():
 def press(*args, delay=0.05):
     for i in args:
         windows.keybd_event(VK_CODE[i], 0, 0, 0)
-        time.sleep(delay)
+        sleep(delay)
         windows.keybd_event(VK_CODE[i], 0, win32con.KEYEVENTF_KEYUP, 0)
 
 
 def press_hold_release(*args, delay=0.05):
     for i in args:
         windows.keybd_event(VK_CODE[i], 0, 0, 0)
-        time.sleep(delay)
+        sleep(delay)
 
     for i in args:
         windows.keybd_event(VK_CODE[i], 0, win32con.KEYEVENTF_KEYUP, 0)
-        time.sleep(delay * 2)
+        sleep(delay * 2)
 
 
 def enter_phrase(*args, delay=0.05):

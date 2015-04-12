@@ -2,7 +2,9 @@ __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
 import solver
 from collections import OrderedDict
-from pybot import *
+from pybot import chill_out_for_a_bit, Timer, debug
+from imaging import *
+from windows import *
 
 runs = 3
 
@@ -267,7 +269,7 @@ def go():
     print("Please don't move and/or breathe while the bot is working,\n"
           "and keep your arms and legs inside the ride at all times\n")
 
-    open_sudoku_on_chrome()
+    # open_sudoku_on_chrome()
     chill_out_for_a_bit(2)
 
     initial_search = screen_grab()

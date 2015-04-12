@@ -2,7 +2,7 @@ __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 version = "0.0.3"
 
 import sudoku_stuff
-from imaging import *
+from time import time, sleep
 
 debug = True
 timings = True
@@ -16,9 +16,9 @@ def greeting():
     # debug = timings = True if input('Debug? (y/n) ') == 'y' else False
 
     print("PyBot! v" + version + ('-debug' if debug else ""))
-    print("Enter time delay between steps -")
-    tom_delay = float(input((
-        "(1 second works for me, might need more for slower computers): ")))
+    # print("Enter time delay between steps -")
+    # tom_delay = float(input((
+    #     "(1 second works for me, might need more for slower computers): ")))
 
     picked = input("Pick a function - " + str(functions) + ": ")
 
@@ -34,7 +34,7 @@ def chill_out_for_a_bit(extra_delay=0):
     delay = tom_delay + extra_delay
     if timings:
         print("sleeping for", delay, "seconds" if delay != 1 else "second")
-    time.sleep(delay)
+    sleep(delay)
 
 
 class Timer:
@@ -44,11 +44,11 @@ class Timer:
     def __enter__(self):
         if timings:
             print(self.label, end=' ')
-        self.start = time.clock()
+        self.start = time()
         return self
 
     def __exit__(self, *args):
-        self.time = time.clock() - self.start
+        self.time = time() - self.start
         if timings:
             print('took', str(round(self.time, 5)), 'seconds')
 

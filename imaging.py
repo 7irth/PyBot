@@ -1,9 +1,10 @@
 __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
 import os
+from time import time
 from re import finditer
 from PIL import Image, ImageOps, ImageGrab, ImageChops
-from windows import *
+from windows import screen_size
 from subprocess import Popen, PIPE
 
 # location of tesseract command
@@ -14,7 +15,7 @@ def screen_grab(x=0, y=0, x_size=screen_size()[0], y_size=screen_size()[1]):
     return ImageGrab.grab((x, y, x + x_size, y + y_size))
 
 
-def print_img(image, description=str(int(time.time())), kind='PNG'):
+def print_img(image, description=str(int(time())), kind='PNG'):
     # make sure required folders exist
     folders = [-1] + [found.start() for found in finditer('/', description)]
     for i in range(len(folders) - 1):
