@@ -1,6 +1,6 @@
 __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
-import solver
+import sudoku_solver
 from collections import OrderedDict
 from pybot import chill_out_for_a_bit, Timer, debug
 from imaging import *
@@ -34,7 +34,7 @@ def switch_to_evil():
     pass
 
 
-# size of ? shaped box with a top left corner at (x, y)
+# size of ↴ shaped box with a top left corner at (x, y)
 def get_box_size(puzzle, x, y):
     first_x, first_y = int(x), int(y)
 
@@ -44,7 +44,7 @@ def get_box_size(puzzle, x, y):
     while close_enough(puzzle[x, y], puzzle[x, y + 1]):  # check col
         y += 1
 
-    return x - first_x + 1, y - first_y + 1  # x_size, y_size ?
+    return x - first_x + 1, y - first_y + 1  # x_size, y_size ↴
 
 
 # returns coordinates and size of puzzle
@@ -115,6 +115,7 @@ def get_puzzle(sudoku_img):
                 # compensate for row breaks
                 y += y_size + (2 if row in [2, 5] else 1)
                 x -= x_size * puzzle_size + 11  # reset to start
+                #                            ↳ compensate for compensations
 
             return sudoku
     return sudoku
@@ -167,7 +168,7 @@ def get_puzzle_hack(sudoku):
 
 # takes in picture of puzzle, then solves and submits it
 def solve_puzzle(sudoku_img):
-    sudoku = solver.Sudoku()
+    sudoku = sudoku_solver.Sudoku()
     found = False
 
     with Timer('getting numbers the easy way'):
@@ -266,7 +267,7 @@ def go():
     global runs
     runs = int(float(input("Runs through the puzzle (try at least 2): ")))
 
-    print("Please don't move and/or breathe while the bot is working,\n"
+    print("\nPlease don't move and/or breathe while the bot is working,\n"
           "and keep your arms and legs inside the ride at all times\n")
 
     # open_sudoku_on_chrome()
