@@ -1,5 +1,9 @@
 __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
+from requests import get
+from re import findall
+from time import sleep
+
 
 class Clue:
     def __init__(self, number, coords, orientation, clue, length, answer=None):
@@ -19,7 +23,7 @@ class Clue:
 class Crossword:
     def __init__(self, size=13):
         self.size = size
-        self.puzzle = [['O' for _ in range(size)] for _ in range(size)]
+        self.puzzle = [['*' for _ in range(size)] for _ in range(size)]
         self.across, self.down = {}, {}
 
         # sample, Guardian #14,022
@@ -80,16 +84,27 @@ class Crossword:
 
         self.down[17] = Clue(17, (9, 9), 'down', 'Seethe', 4)
 
+        self.clues = [clue for clue in self.across.values()] + \
+                     [clue for clue in self.down.values()]
+
+        for clue in self.clues:
+            a = get_answers(clue)
+            sleep(1)
+            clue.answer = a[0] if len(a) > 0 else \
+                print(clue, 'no answers found :(')
+
+        self.fill_answers()
+
     def fill_answers(self):
         for clue in self.across.values():
             for i in range(clue.length):
-                if self.puzzle[clue.coords[0]][clue.coords[1] + i] == 'O':
+                if self.puzzle[clue.coords[0]][clue.coords[1] + i] == '*':
                     self.puzzle[clue.coords[0]][clue.coords[1] + i] = \
                         clue.answer[i] if clue.answer else '*'
 
         for clue in self.down.values():
             for i in range(clue.length):
-                if self.puzzle[clue.coords[0] + i][clue.coords[1]] == 'O':
+                if self.puzzle[clue.coords[0] + i][clue.coords[1]] == '*':
                     self.puzzle[clue.coords[0] + i][clue.coords[1]] = \
                         clue.answer[i] if clue.answer else '*'
 
@@ -103,9 +118,45 @@ class Crossword:
         return s
 
 
+def get_answers(clue_in):
+    clue = clue_in.clue
+    url = 'http://www.wordplays.com/crossword-solver/'
+
+    # encode URL
+    for i in range(len(clue)):
+        if clue[i] == ' ':
+            url += '-'
+        elif clue[i] == ',':
+            url += '%2C'
+        elif clue[i] == ':':
+            url += '%3A'
+        elif clue[i] == '?':
+            url += '%3F'
+        elif clue[i] == '\'':
+            url += '%27'
+        elif clue[i] == '(':
+            url += '%28'
+        elif clue[i] == ')':
+            url += '%29'
+        else:
+            url += clue[i]
+
+    r = get(url)
+
+    if r.status_code != 200:
+        print('Nope', url)
+
+    # get ranks and answers
+    # answers = re.findall(r'class=stars>(.*?)<td class=clue', r.text)
+
+    # just the possible answers
+    return list(filter(None, [c.lower() if len(c) == clue_in.length else None
+                            for c in findall(r'crossword-clues/(.*?)"',
+                                             r.text)]))
+
 if __name__ == '__main__':
     crossword = Crossword()
-    crossword.across[5].answer = 'cliffhanger'
-    crossword.across[17].answer = 'frog'
-    crossword.fill_answers()
     print(crossword)
+
+    for thing in crossword.clues:
+        print(thing)
