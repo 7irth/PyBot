@@ -2,7 +2,7 @@ __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
 
 class Clue:
-    def __init__(self, number, coords, orientation, clue, length, answer=''):
+    def __init__(self, number, coords, orientation, clue, length, answer=None):
         self.number = number
         self.orientation = orientation
         self.coords = coords
@@ -17,7 +17,9 @@ class Clue:
 
 
 class Crossword:
-    def __init__(self):
+    def __init__(self, size=13):
+        self.size = size
+        self.puzzle = [['O' for _ in range(size)] for _ in range(size)]
         self.across, self.down = {}, {}
 
         # sample, Guardian #14,022
@@ -44,7 +46,7 @@ class Crossword:
                                'Herb used in cooking - a Mr Major (anag)', 8)
 
         self.across[17] = Clue(17, (9, 9), 'across',
-                               'Amphibian (lodged in the throat?)', 4, 'frog')
+                               'Amphibian (lodged in the throat?)', 4)
 
         self.across[18] = Clue(18, (11, 1), 'across', 'Regardless', 11)
 
@@ -78,8 +80,32 @@ class Crossword:
 
         self.down[17] = Clue(17, (9, 9), 'down', 'Seethe', 4)
 
+    def fill_answers(self):
+        for clue in self.across.values():
+            for i in range(clue.length):
+                if self.puzzle[clue.coords[0]][clue.coords[1] + i] == 'O':
+                    self.puzzle[clue.coords[0]][clue.coords[1] + i] = \
+                        clue.answer[i] if clue.answer else '*'
+
+        for clue in self.down.values():
+            for i in range(clue.length):
+                if self.puzzle[clue.coords[0] + i][clue.coords[1]] == 'O':
+                    self.puzzle[clue.coords[0] + i][clue.coords[1]] = \
+                        clue.answer[i] if clue.answer else '*'
+
+    def __str__(self):
+        s = ''
+        for i in range(self.size):
+            for j in range(self.size):
+                s += str(self.puzzle[i][j])
+            s += '\n'
+
+        return s
+
 
 if __name__ == '__main__':
     crossword = Crossword()
-    for thing in crossword.across:
-        print(crossword.across[thing])
+    crossword.across[5].answer = 'cliffhanger'
+    crossword.across[17].answer = 'frog'
+    crossword.fill_answers()
+    print(crossword)

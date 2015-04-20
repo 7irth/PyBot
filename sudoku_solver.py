@@ -87,12 +87,12 @@ class Sudoku:
     def get_stuff(self):
         rows, columns, boxes = [], [], []
 
-        # for i in range(len(self.sudoku)):
-        #     columns.append([])
-        #     boxes.append([])
+        for i in range(len(self.sudoku)):
+            columns.append([])
+            boxes.append([])
 
-        columns = [[] for _ in range(self.size)]
-        boxes = [[] for _ in range(self.size)]
+        # columns = [[] for _ in range(self.size)]
+        # boxes = [[] for _ in range(self.size)]
 
         for row in self.sudoku:
             rows.append(row)
