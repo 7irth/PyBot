@@ -11,7 +11,7 @@ class Clue:
         self.orientation = orientation
         self.row, self.col = coords[0], coords[1]
         self.clue = clue
-        self.answers = answer
+        self.answers = [answer] if answer else None
         self.length = length
 
     def __repr__(self):
@@ -85,57 +85,74 @@ class Crossword:
         self.down[17] = Clue(17, (9, 9), 'down', 'Seethe', 4)
 
         self.test_ans = {
-            'Amphibian (lodged in the throat?)': ['frog', 'rasp', 'ahem',
-                                                  'laid'],
-            'Olympic field event in which Greg Rutherford won gold in 2012': [
-                'longjump', 'roadtrip', 'sarajevo'],
-            'Ballroom dance in triple time': ['waltz', 'samba', 'valse',
-                                              'rumba',
-                                              'bossa', 'polka'],
-            'Loire or California grape - NBC Channel I (anag)': [
-                'cheninblanc'],
-            'Brusque': ['rushing', 'raucous', 'laconic', 'offhand'],
-            'Transmission in a motor vehicle': ['gearbox', 'renault',
-                                                'peugeot'],
-            'Sandglass that runs for three (or four?) minutes': ['eggtimer',
-                                                                 'csimiami',
-                                                                 'goeslong'],
+            'Colour between red and green?': [(4, 'amber'), (2, 'green'),
+                                              (2, 'omani')],
+            'Beef, venison or lamb, for example': [(4, 'redmeat'),
+                                                   (2, 'navarin'),
+                                                   (2, 'persian'),
+                                                   (1, 'marsala'),
+                                                   (1, 'gamiest'),
+                                                   (1, 'reddeer')],
+            'Sharp tug': [(5, 'yank'), (2, 'jerk'), (1, 'boat'), (1, 'atwo'),
+                          (1, 'noon'), (1, 'edge')],
             'Contest with the outcome in doubt right to the end': [
-                'cliffhanger',
-                'bloodvessel'],
-            'Massage to relieve tension by finger pressure': ['reflexology',
-                                                              'rockthebaby',
-                                                              'breaktheice'],
-            'Regardless': ['overlooking', 'interesting', 'opinionated',
-                           'affectional', 'comewhatmay', 'appreciable',
-                           'prestigious', 'consecrated', 'unconcerned',
-                           'nonetheless', 'applaudable', 'considerate',
-                           'approbative', 'insensitive', 'deferential',
-                           'thoughtless', 'appreciated', 'approbatory',
-                           'calculating', 'inadvertent', 'influential',
-                           'indifferent'],
-            'Cocktail crustacean?': ['prawn', 'palps', 'eliot'],
-            'Beef, venison or lamb, for example': ['redmeat', 'navarin',
-                                                   'persian',
-                                                   'marsala', 'gamiest',
-                                                   'reddeer'],
-            'Colour between red and green?': ['amber', 'green', 'omani'],
-            'Sharp tug': ['yank', 'jerk', 'boat', 'atwo', 'noon', 'edge'],
-            'Seethe': ['boil', 'warm', 'cook', 'buzz', 'rage', 'burn', 'fume',
-                       'brew', 'fizz', 'hiss', 'foam', 'soak', 'heat', 'fill',
-                       'flip', 'stew'],
-            'European country': ['andorra', 'austria', 'finland', 'albania',
-                                 'ukraine', 'germany', 'denmark', 'turkish',
-                                 'estonia'],
-            'Something sensational, daring or erotic': ['hotstuff',
-                                                        'ferocity'],
-            'Herb used in cooking - a Mr Major (anag)': ['marjoram',
-                                                         'rosemary',
-                                                         'snapbean',
-                                                         'beefcake'],
-            'Hard, black wood': ['ebony', 'emery', 'hoeft', 'maori'],
-            'Fishing harbour in northeast Scotland': ['wick', 'said', 'tema',
-                                                      'hull', 'suez', 'iasi']}
+                (4, 'cliffhanger'), (3, 'bloodvessel')],
+            'Herb used in cooking - a Mr Major (anag)': [(4, 'marjoram'),
+                                                         (3, 'rosemary'),
+                                                         (3, 'snapbean'),
+                                                         (2, 'beefcake')],
+            'Sandglass that runs for three (or four?) minutes': [
+                (4, 'eggtimer'),
+                (2, 'csimiami'),
+                (2, 'goeslong')],
+            'European country': [(5, 'austria'), (5, 'andorra'),
+                                 (2, 'finland'),
+                                 (2, 'albania'), (2, 'ukraine'),
+                                 (2, 'germany'),
+                                 (2, 'denmark'), (2, 'turkish'),
+                                 (2, 'estonia')],
+            'Brusque': [(5, 'rushing'), (5, 'raucous'), (5, 'laconic'),
+                        (5, 'offhand')],
+            'Transmission in a motor vehicle': [(4, 'gearbox'), (2, 'renault'),
+                                                (2, 'peugeot')],
+            'Ballroom dance in triple time': [(4, 'waltz'), (3, 'samba'),
+                                              (3, 'valse'), (3, 'rumba'),
+                                              (2, 'bossa'), (2, 'polka')],
+            'Cocktail crustacean?': [(2, 'prawn'), (1, 'palps'), (1, 'eliot')],
+            'Something sensational, daring or erotic': [(4, 'hotstuff'),
+                                                        (1, 'ferocity')],
+            'Hard, black wood': [(3, 'ebony'), (2, 'emery'), (1, 'hoeft'),
+                                 (1, 'maori')],
+            'Regardless': [(5, 'inadvertent'), (5, 'influential'),
+                           (5, 'indifferent'), (5, 'awestricken'),
+                           (5, 'inattentive'), (5, 'categorized'),
+                           (5, 'overlooking'), (5, 'interesting'),
+                           (5, 'opinionated'), (5, 'affectional'),
+                           (5, 'comewhatmay'), (5, 'appreciable'),
+                           (5, 'prestigious'), (5, 'consecrated'),
+                           (5, 'unconcerned'), (5, 'nonetheless'),
+                           (5, 'applaudable'), (5, 'considerate'),
+                           (5, 'approbative'), (5, 'insensitive'),
+                           (5, 'deferential'), (5, 'thoughtless'),
+                           (5, 'appreciated')],
+            'Massage to relieve tension by finger pressure': [
+                (4, 'reflexology'),
+                (2, 'rockthebaby'),
+                (2, 'breaktheice')],
+            'Amphibian (lodged in the throat?)': [(4, 'frog'), (3, 'rasp'),
+                                                  (2, 'ahem'), (1, 'fell')],
+            'Seethe': [(5, 'fill'), (5, 'flip'), (5, 'stew'), (5, 'boil'),
+                       (5, 'warm'), (5, 'cook'), (5, 'buzz'), (5, 'rage'),
+                       (5, 'burn'), (5, 'fume'), (5, 'brew'), (5, 'fizz'),
+                       (5, 'hiss'), (5, 'foam'), (5, 'soak'), (5, 'heat')],
+            'Olympic field event in which Greg Rutherford won gold in 2012': [
+                (4, 'longjump'), (3, 'roadtrip'), (2, 'sarajevo')],
+            'Fishing harbour in northeast Scotland': [(4, 'wick'), (2, 'said'),
+                                                      (2, 'tema'), (2, 'hull'),
+                                                      (1, 'suez'),
+                                                      (1, 'iasi')],
+            'Loire or California grape - NBC Channel I (anag)': [
+                (4, 'cheninblanc')]}
 
         self.clues = ([clue for clue in self.across.values()] +
                       [clue for clue in self.down.values()])
@@ -144,8 +161,8 @@ class Crossword:
 
     def fill_answers(self):
         for clue in self.clues:
-            clue.answers = get_answers(clue)
-            # clue.answers = self.test_ans[clue.clue]
+            # clue.answers = get_answers(clue)
+            clue.answers = self.test_ans[clue.clue]
 
             if len(clue.answers) == 0:
                 print(clue, 'no answers found :(')
@@ -157,7 +174,7 @@ class Crossword:
                     if clue.orientation == 'across':
                         curr = self.puzzle[clue.row][clue.col + i]
                         if curr == '*':
-                            self.puzzle[clue.row][clue.col + i] = answer[i]
+                            self.puzzle[clue.row][clue.col + i] = answer[1][i]
                             # elif curr != answer[i]:
                             #     print('mismatch!', answer)
                             #     break
@@ -165,7 +182,7 @@ class Crossword:
                     elif clue.orientation == 'down':
                         curr = self.puzzle[clue.row + i][clue.col]
                         if curr == '*':
-                            self.puzzle[clue.row + i][clue.col] = answer[i]
+                            self.puzzle[clue.row + i][clue.col] = answer[1][i]
                             # elif curr != answer[i]:
                             #     print('mismatch!', answer)
                             #     break
@@ -210,13 +227,15 @@ def get_answers(clue_in):
         print('Nope', url)
 
     # get ranks and answers
-    # answers = re.findall(r'class=stars>(.*?)<td class=clue', r.text)
+    scraped = findall(r'class=stars>(.*?)<td class=clue', r.text)
 
-    # just the possible answers
+    # clean up and put into list
     answers = []
-    for c in findall(r'crossword-clues/(.*?)"', r.text):
-        if len(c.strip()) == clue_in.length:
-            answers.append(c.strip().lower())
+    for a in scraped:
+        stars = len(findall(r'<div></div>', a))
+        answer = findall(r'crossword-clues/(.*?)"', a)[0].strip().lower()
+        if len(answer) == clue_in.length:
+            answers.append((stars, answer))
 
     return answers
 
