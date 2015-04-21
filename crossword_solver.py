@@ -193,47 +193,28 @@ class Crossword:
 
             for answer in clue.answers:
 
-                if clue.orientation == 'across':
+                current_word = ''
+                for i in range(clue.length):
+                    current_word += (self.puzzle[clue.row][clue.col + i]
+                                     if clue.orientation == 'across'
+                                     else self.puzzle[clue.row + i][clue.col])
 
-                    current_word = ''
-                    for i in range(clue.length):
-                        current_word += self.puzzle[clue.row][clue.col + i]
-                        if (current_word[i] != delimiter and
-                                    answer[1][i] != current_word[i]):
-                            print("whoop", answer[1][i])
-                            collision = True
-                            break
+                    if current_word[i] != delimiter and answer[1][i] != current_word[i]:
+                        collision = True
+                        break
 
-                    if collision:
-                        collision = False
-                        continue
+                if collision:
+                    if clue.answers.index(answer) == len(clue.answers) - 1:
+                        print('bummer', clue)
+                    collision = False
+                    continue
 
-                    print(current_word)
-
-                    for i in range(clue.length):
+                for i in range(clue.length):
+                    if clue.orientation == 'across':
                         self.puzzle[clue.row][clue.col + i] = answer[1][i]
-                    break
-
-                elif clue.orientation == 'down':
-
-                    current_word = ''
-                    for i in range(clue.length):
-                        current_word += self.puzzle[clue.row + i][clue.col]
-                        if (current_word[i] != delimiter and
-                                    answer[1][i] != current_word[i]):
-                            print("whoop", answer[1][i])
-                            collision = True
-                            break
-
-                    if collision:
-                        collision = False
-                        continue
-
-                    print(current_word)
-
-                    for i in range(clue.length):
+                    elif clue.orientation == 'down':
                         self.puzzle[clue.row + i][clue.col] = answer[1][i]
-                    break
+                break
 
     def __str__(self):
         s = ''
@@ -246,46 +227,49 @@ class Crossword:
 
 
 def get_answers(clue_in):
-    clue = clue_in.clue
-    url = 'http://www.wordplays.com/crossword-solver/'
+    if clue_in.answers is None:
+        url = 'http://www.wordplays.com/crossword-solver/'
 
-    # encode URL
-    for c in clue:
-        if c == ' ':
-            url += '-'
-        elif c == ',':
-            url += '%2C'
-        elif c == ':':
-            url += '%3A'
-        elif c == '?':
-            url += '%3F'
-        elif c == '\'':
-            url += '%27'
-        elif c == '(':
-            url += '%28'
-        elif c == ')':
-            url += '%29'
-        else:
-            url += c
+        # encode URL
+        for c in clue_in.clue:
+            if c == ' ':
+                url += '-'
+            elif c == ',':
+                url += '%2C'
+            elif c == ':':
+                url += '%3A'
+            elif c == '?':
+                url += '%3F'
+            elif c == '\'':
+                url += '%27'
+            elif c == '(':
+                url += '%28'
+            elif c == ')':
+                url += '%29'
+            else:
+                url += c
 
-    sleep(4)
-    r = get(url)
+        sleep(4)
+        r = get(url)
 
-    if r.status_code != 200:
-        print('Nope', url)
+        if r.status_code != 200:
+            print('Nope', url)
 
-    # get ranks and answers
-    scraped = findall(r'class=stars>(.*?)<td class=clue', r.text)
+        # get ranks and answers
+        scraped = findall(r'class=stars>(.*?)<td class=clue', r.text)
 
-    # clean up and put into list
-    answers = []
-    for a in scraped:
-        stars = len(findall(r'<div></div>', a))
-        answer = findall(r'crossword-clues/(.*?)"', a)[0].strip().lower()
-        if len(answer) == clue_in.length:
-            answers.append((stars, answer))
+        # clean up and put into list
+        answers = []
+        for clue in scraped:
+            stars = len(findall(r'<div></div>', clue))
+            answer = findall(r'crossword-clues/(.*?)"', clue)[
+                0].strip().lower()
+            if len(answer) == clue_in.length:
+                answers.append((stars, answer))
 
-    return answers
+        return answers
+    else:
+        return clue_in.answers
 
 
 if __name__ == '__main__':
