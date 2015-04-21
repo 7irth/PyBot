@@ -9,15 +9,15 @@ class Clue:
     def __init__(self, number, coords, orientation, clue, length, answer=None):
         self.number = number
         self.orientation = orientation
-        self.coords = coords
+        self.row, self.col = coords[0], coords[1]
         self.clue = clue
-        self.answer = answer
+        self.answers = answer
         self.length = length
 
     def __repr__(self):
         return '{0} {1} {2} - {3} ({4}): {5}' \
-            .format(str(self.number), self.orientation, str(self.coords),
-                    self.clue, str(self.length), self.answer)
+            .format(str(self.number), self.orientation, (self.row, self.col),
+                    self.clue, str(self.length), self.answers)
 
 
 class Crossword:
@@ -84,29 +84,91 @@ class Crossword:
 
         self.down[17] = Clue(17, (9, 9), 'down', 'Seethe', 4)
 
-        self.clues = [clue for clue in self.across.values()] + \
-                     [clue for clue in self.down.values()]
+        self.test_ans = {
+            'Amphibian (lodged in the throat?)': ['frog', 'rasp', 'ahem',
+                                                  'laid'],
+            'Olympic field event in which Greg Rutherford won gold in 2012': [
+                'longjump', 'roadtrip', 'sarajevo'],
+            'Ballroom dance in triple time': ['waltz', 'samba', 'valse',
+                                              'rumba',
+                                              'bossa', 'polka'],
+            'Loire or California grape - NBC Channel I (anag)': [
+                'cheninblanc'],
+            'Brusque': ['rushing', 'raucous', 'laconic', 'offhand'],
+            'Transmission in a motor vehicle': ['gearbox', 'renault',
+                                                'peugeot'],
+            'Sandglass that runs for three (or four?) minutes': ['eggtimer',
+                                                                 'csimiami',
+                                                                 'goeslong'],
+            'Contest with the outcome in doubt right to the end': [
+                'cliffhanger',
+                'bloodvessel'],
+            'Massage to relieve tension by finger pressure': ['reflexology',
+                                                              'rockthebaby',
+                                                              'breaktheice'],
+            'Regardless': ['overlooking', 'interesting', 'opinionated',
+                           'affectional', 'comewhatmay', 'appreciable',
+                           'prestigious', 'consecrated', 'unconcerned',
+                           'nonetheless', 'applaudable', 'considerate',
+                           'approbative', 'insensitive', 'deferential',
+                           'thoughtless', 'appreciated', 'approbatory',
+                           'calculating', 'inadvertent', 'influential',
+                           'indifferent'],
+            'Cocktail crustacean?': ['prawn', 'palps', 'eliot'],
+            'Beef, venison or lamb, for example': ['redmeat', 'navarin',
+                                                   'persian',
+                                                   'marsala', 'gamiest',
+                                                   'reddeer'],
+            'Colour between red and green?': ['amber', 'green', 'omani'],
+            'Sharp tug': ['yank', 'jerk', 'boat', 'atwo', 'noon', 'edge'],
+            'Seethe': ['boil', 'warm', 'cook', 'buzz', 'rage', 'burn', 'fume',
+                       'brew', 'fizz', 'hiss', 'foam', 'soak', 'heat', 'fill',
+                       'flip', 'stew'],
+            'European country': ['andorra', 'austria', 'finland', 'albania',
+                                 'ukraine', 'germany', 'denmark', 'turkish',
+                                 'estonia'],
+            'Something sensational, daring or erotic': ['hotstuff',
+                                                        'ferocity'],
+            'Herb used in cooking - a Mr Major (anag)': ['marjoram',
+                                                         'rosemary',
+                                                         'snapbean',
+                                                         'beefcake'],
+            'Hard, black wood': ['ebony', 'emery', 'hoeft', 'maori'],
+            'Fishing harbour in northeast Scotland': ['wick', 'said', 'tema',
+                                                      'hull', 'suez', 'iasi']}
 
-        for clue in self.clues:
-            a = get_answers(clue)
-            sleep(1)
-            clue.answer = a[0] if len(a) > 0 else \
-                print(clue, 'no answers found :(')
+        self.clues = ([clue for clue in self.across.values()] +
+                      [clue for clue in self.down.values()])
 
         self.fill_answers()
 
     def fill_answers(self):
-        for clue in self.across.values():
-            for i in range(clue.length):
-                if self.puzzle[clue.coords[0]][clue.coords[1] + i] == '*':
-                    self.puzzle[clue.coords[0]][clue.coords[1] + i] = \
-                        clue.answer[i] if clue.answer else '*'
+        for clue in self.clues:
+            clue.answers = get_answers(clue)
+            # clue.answers = self.test_ans[clue.clue]
 
-        for clue in self.down.values():
-            for i in range(clue.length):
-                if self.puzzle[clue.coords[0] + i][clue.coords[1]] == '*':
-                    self.puzzle[clue.coords[0] + i][clue.coords[1]] = \
-                        clue.answer[i] if clue.answer else '*'
+            if len(clue.answers) == 0:
+                print(clue, 'no answers found :(')
+                continue
+
+            for answer in clue.answers:
+                for i in range(clue.length):
+
+                    if clue.orientation == 'across':
+                        curr = self.puzzle[clue.row][clue.col + i]
+                        if curr == '*':
+                            self.puzzle[clue.row][clue.col + i] = answer[i]
+                            # elif curr != answer[i]:
+                            #     print('mismatch!', answer)
+                            #     break
+
+                    elif clue.orientation == 'down':
+                        curr = self.puzzle[clue.row + i][clue.col]
+                        if curr == '*':
+                            self.puzzle[clue.row + i][clue.col] = answer[i]
+                            # elif curr != answer[i]:
+                            #     print('mismatch!', answer)
+                            #     break
 
     def __str__(self):
         s = ''
@@ -123,24 +185,25 @@ def get_answers(clue_in):
     url = 'http://www.wordplays.com/crossword-solver/'
 
     # encode URL
-    for i in range(len(clue)):
-        if clue[i] == ' ':
+    for c in clue:
+        if c == ' ':
             url += '-'
-        elif clue[i] == ',':
+        elif c == ',':
             url += '%2C'
-        elif clue[i] == ':':
+        elif c == ':':
             url += '%3A'
-        elif clue[i] == '?':
+        elif c == '?':
             url += '%3F'
-        elif clue[i] == '\'':
+        elif c == '\'':
             url += '%27'
-        elif clue[i] == '(':
+        elif c == '(':
             url += '%28'
-        elif clue[i] == ')':
+        elif c == ')':
             url += '%29'
         else:
-            url += clue[i]
+            url += c
 
+    sleep(4)
     r = get(url)
 
     if r.status_code != 200:
@@ -150,9 +213,13 @@ def get_answers(clue_in):
     # answers = re.findall(r'class=stars>(.*?)<td class=clue', r.text)
 
     # just the possible answers
-    return list(filter(None, [c.lower() if len(c) == clue_in.length else None
-                            for c in findall(r'crossword-clues/(.*?)"',
-                                             r.text)]))
+    answers = []
+    for c in findall(r'crossword-clues/(.*?)"', r.text):
+        if len(c.strip()) == clue_in.length:
+            answers.append(c.strip().lower())
+
+    return answers
+
 
 if __name__ == '__main__':
     crossword = Crossword()
