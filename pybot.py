@@ -1,12 +1,13 @@
 __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
-version = "0.0.3"
+version = '0.0.4'
 
 import sudoku_stuff
+import crossword_stuff
 from time import time, sleep
 
 debug = True
 timings = True
-functions = ["sudoku", "kill all humans"]
+functions = ['sudoku', 'crossword', 'kill all humans']
 tom_delay = 1
 
 
@@ -15,16 +16,16 @@ def greeting():
 
     # debug = timings = True if input('Debug? (y/n) ') == 'y' else False
 
-    print("PyBot! v" + version + ('-debug' if debug else ""))
+    print('PyBot! v' + version + ('-debug' if debug else ''))
     # print("Enter time delay between steps -")
     # tom_delay = float(input((
     #     "(1 second works for me, might need more for slower computers): ")))
 
-    picked = input("Pick a function - " + str(functions) + ": ")
+    picked = input('Pick a function - ' + str(functions) + ': ')
 
     while picked not in functions:
         picked = input("Invalid choice, try again foo': ")
-        if picked == "exit":
+        if picked == 'exit':
             exit()
 
     return picked
@@ -33,7 +34,7 @@ def greeting():
 def chill_out_for_a_bit(extra_delay=0):
     delay = tom_delay + extra_delay
     if timings:
-        print("sleeping for", delay, "seconds" if delay != 1 else "second")
+        print('sleeping for', delay, 'seconds' if delay != 1 else 'second')
     sleep(delay)
 
 
@@ -56,5 +57,7 @@ class Timer:
 if __name__ == '__main__':
     choice = greeting()
 
-    if choice == "sudoku":
+    if choice == 'sudoku':
         sudoku_stuff.go()
+    elif choice == 'crossword':
+        crossword_stuff.go()

@@ -6,6 +6,22 @@ from windows import *
 from imaging import *
 
 
+def open_guardian_on_chrome(numb):
+    press('winkey')
+    pybot.chill_out_for_a_bit()
+
+    enter_phrase('google chrome')
+    press('enter')
+    pybot.chill_out_for_a_bit()
+
+    press_hold_release('ctrl', 't')
+    pybot.chill_out_for_a_bit()
+
+    enter_phrase('theguardian.com/crosswords/' +
+                 (('quick/' + numb) if numb else 'series/quick'), delay=.01)
+    press('enter')
+
+
 # returns coordinates and size of puzzle
 def find_puzzle(sample_in=screen_grab()):
     columns, rows = sample_in.size
@@ -25,7 +41,7 @@ def find_puzzle(sample_in=screen_grab()):
         while x + 1 < columns:
             x += 1  # next column
 
-            if sample[x, y] == init_pixel:  # first pixel match
+            if sample[x, y] == init_pixel or sample[x, y] == other_pixel:
                 first_x, first_y = int(x), int(y)
 
                 while (sample[x + 1, y] == init_pixel or
@@ -55,30 +71,43 @@ def go():
     cells = 13
     cell_size = 28
 
-    initial_search = screen_grab()
-    with pybot.Timer('finding the crossword'):
-        x, y, x_size, y_size = find_puzzle()
+    open_guardian_on_chrome(None)
 
-    if x is None:
-        if pybot.debug:
-            print_img(initial_search, "send_to_tirth/no_joy")
-        input("Couldn't find puzzle! Press the any key (it's enter) to exit")
+    puzzle = input('Enter a Guardian Quick crossword No ')
 
-    else:
-        # getting crossword answers
-        across, down = crossword_solver.read_guardian_puzzle('crossword.txt')
-        crossword = crossword_solver.Crossword(cells, across, down,
-                                               'answers.json')
+    with pybot.Timer('solving the crossword'):
+        across, down = crossword_solver.get_guardian(puzzle)
+        crossword = crossword_solver.Crossword(cells, across, down)
         crossword.fill_answers()
+
+        if pybot.debug:
+            print(crossword.answers)
 
         first = crossword.clues[0]
 
+    # press_hold_release('winkey', 'down_arrow')
+    # pybot.chill_out_for_a_bit()
+    initial_search = screen_grab()
+    # print('Sorry about that, had to move the terminal to find the puzzle')
+    # pybot.chill_out_for_a_bit()
+    # press_hold_release('alt', 'tab')
+
+    with pybot.Timer('finding the crossword'):
+        x, y, x_size, y_size = find_puzzle(initial_search)
+
+    if x is None:
+        if pybot.debug:
+            print_img(initial_search, 'send_to_tirth/no_joy')
+        input("Couldn't find puzzle! Press the any key (it's enter) to exit")
+
+    else:
         move(x + first.col * cell_size + cell_size // 2,
              y + first.row * cell_size + cell_size // 2)
-        left_click()
-        left_click()
+        left_click(); sleep(0.05); left_click()  # select across
 
         submit_crossword(crossword.answers)
+
+    input("\nIronically, press enter to exit")  # keep prompt open
 
 
 if __name__ == '__main__':

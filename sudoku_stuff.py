@@ -11,23 +11,18 @@ runs = 3
 
 
 def open_sudoku_on_chrome():
+    press('winkey')
     pybot.chill_out_for_a_bit()
 
-    press("winkey")
-
+    enter_phrase('google chrome')
+    press('enter')
     pybot.chill_out_for_a_bit()
 
-    enter_phrase("google chrome")
-    press("enter")
-
+    press_hold_release('ctrl', 't')
     pybot.chill_out_for_a_bit()
 
-    press_hold_release("ctrl", "t")
-
-    pybot.chill_out_for_a_bit()
-
-    enter_phrase("websudoku.com")
-    press("enter")
+    enter_phrase('websudoku.com')
+    press('enter')
     # press_hold_release("winkey", "up_arrow")
 
 
@@ -209,7 +204,7 @@ def next_puzzle(old_x, old_y, old_x_size, old_y_size):
         pybot.chill_out_for_a_bit()
 
         bring_search = screen_grab(old_x, old_y, old_x_size, old_y_size)
-        with pybot.Timer("finding the button for next puzzle"):
+        with pybot.Timer('finding the button for next puzzle'):
             buttons = find_buttons(bring_search)
 
         try:
@@ -235,7 +230,7 @@ def next_puzzle(old_x, old_y, old_x_size, old_y_size):
 
             if next_x is None:
                 if pybot.debug:
-                    print_img(next_search, "send_to_tirth/next_sudoku")
+                    print_img(next_search, 'send_to_tirth/next_sudoku')
                 print("Couldn't find puzzle this time :(")
 
             else:
@@ -248,12 +243,12 @@ def next_puzzle(old_x, old_y, old_x_size, old_y_size):
                 solve_puzzle((screen_grab(next_x, next_y, x_size, y_size)))
 
                 runs -= 1
-                print(runs, "runs" if runs != 1 else "run", "left")
+                print(runs, 'runs' if runs != 1 else 'run', 'left')
                 next_puzzle(next_x, next_y, x_size, y_size)
 
         except KeyError:
             if pybot.debug:
-                print_img(bring_search, "send_to_tirth/bring_search")
+                print_img(bring_search, 'send_to_tirth/bring_search')
             print("Couldn't find button for next puzzle")
 
     else:
@@ -262,12 +257,12 @@ def next_puzzle(old_x, old_y, old_x_size, old_y_size):
 
 def go():
     global runs
-    runs = int(float(input("Runs through the puzzle (try at least 2): ")))
+    runs = int(float(input('Runs through the puzzle (try at least 2): ')))
 
     print("\nPlease don't move and/or breathe while the bot is working,\n"
           "and keep your arms and legs inside the ride at all times\n")
 
-    # open_sudoku_on_chrome()
+    open_sudoku_on_chrome()
     pybot.chill_out_for_a_bit(2)
 
     initial_search = screen_grab()

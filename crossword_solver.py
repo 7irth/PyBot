@@ -1,6 +1,6 @@
 __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
-from requests import get
+from requests import get as req
 from re import findall
 from time import sleep
 from json import loads
@@ -65,7 +65,7 @@ class Crossword:
                             else get_answers(clue))
 
             counter += 1
-            print(str(counter * 100 // len(self.clues)) + '%', end=' .. ')
+            print(str(counter * 100 // len(self.clues)) + '%')
 
             if len(clue.answers) == 0:
                 print(clue, 'no answers found :(')
@@ -74,7 +74,6 @@ class Crossword:
             collision = False
 
             for answer in clue.answers:
-
                 current_word = ''
                 for i in range(clue.length):
                     current_word += (self.puzzle[clue.row][clue.col + i]
@@ -114,24 +113,30 @@ class Crossword:
         return s
 
 
-def read_guardian_puzzle(file):
+def get_guardian(number):
     across, down = {}, {}
-    with open(file, 'r') as puzzle:
-        puzz = puzzle.readlines()
 
-    switch = puzz.index('\n')
+    r = req('http://www.theguardian.com/crosswords/quick/' + number + '/blind')
+    resp = ' '.join(r.text.split())
 
-    for i in range(len(puzz)):
-        p = puzz[i].strip().split()
-        if i < switch:
-            across[int(p[0])] = \
-                Clue(int(p[0]), coord(p[1]), 'across', ' '.join(p[2:]),
-                     sum([int(i) for i in p[-1][1:-1].split(',')]))
+    acr = findall(r'<li>(.*?) </li>',
+                  findall(r'<h2>Across(.*?)</ul>', resp)[0])
+    dow = findall(r'<li>(.*?) </li>', findall(r'<h2>Down(.*?)</ul>', resp)[0])
 
-        elif i > switch:
-            down[int(p[0])] = \
-                Clue(int(p[0]), coord(p[1]), 'down', ' '.join(p[2:]),
-                     sum([int(i) for i in p[-1][1:-1].split(',')]))
+    # build Clue objects from given puzzle
+    for a in acr:
+        p = a.strip().split()
+        across[int(p[0])] = \
+            Clue(int(p[0]), coord(p[1]), 'across', ' '.join(p[2:]),
+                 sum([int(i) for i in
+                      p[-1][1:-1].replace('-', ',').split(',')]))
+
+    for d in dow:
+        p = d.strip().split()
+        down[int(p[0])] = \
+            Clue(int(p[0]), coord(p[1]), 'down', ' '.join(p[2:]),
+                 sum([int(i) for i in
+                      p[-1][1:-1].replace('-', ',').split(',')]))
 
     return across, down
 
@@ -159,8 +164,8 @@ def get_answers(clue_in):
             else:
                 url += c
 
-        sleep(4)
-        r = get(url)
+        sleep(4)  # don't send requests too quickly
+        r = req(url)
 
         if r.status_code != 200:
             print('Nope', url)
@@ -191,11 +196,4 @@ def coord(c):
 
 
 if __name__ == '__main__':
-    puzzle_file = 'crossword.txt'
-    a, d = read_guardian_puzzle(puzzle_file)
-
-    crossword = Crossword(across=a, down=d, answers='answers.json')
-
-    crossword.fill_answers()
-
-    print(crossword)
+    pass
