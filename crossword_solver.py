@@ -29,14 +29,18 @@ class Clue:
 
 
 class Crossword:
-    def __init__(self, size=13):
+    def __init__(self, size=13, across=None, down=None, answers=None):
         self.size = size
         self.puzzle = [[delimiter for _ in range(size)] for _ in range(size)]
-        self.across, self.down = {}, {}
-        self.clues = []
+        self.clues, self.answers = [], []
+        self.given_ans = None
 
-        with open('sample_answers.json', 'r') as answers:
-            self.test_ans = loads(answers.read())
+        if across and down:
+            self.input_crossword(across, down)
+
+        if answers:
+            with open(answers, 'r') as ans:
+                self.given_ans = loads(ans.read())
 
     def input_crossword(self, across, down):
         across_keys = sorted(across.keys())
@@ -52,16 +56,16 @@ class Crossword:
                 self.clues.append(down[down_keys[d_at]])
                 d_at += 1
 
-        self.fill_answers()
-
     def fill_answers(self):
         counter = 0
-        for clue in self.clues:
-            counter += 1
-            # print(str(counter * 100 // len(self.clues)) + '%')
+        a_ans, d_ans = [], []
 
-            # clue.answers = get_answers(clue)
-            clue.answers = self.test_ans[clue.clue]
+        for clue in self.clues:
+            clue.answers = (self.given_ans[clue.clue] if self.given_ans
+                            else get_answers(clue))
+
+            counter += 1
+            print(str(counter * 100 // len(self.clues)) + '%', end=' .. ')
 
             if len(clue.answers) == 0:
                 print(clue, 'no answers found :(')
@@ -88,6 +92,9 @@ class Crossword:
                     collision = False
                     continue
 
+                a_ans.append(answer[1]) if clue.orientation == 'across' \
+                    else d_ans.append(answer[1])
+
                 for i in range(clue.length):
                     if clue.orientation == 'across':
                         self.puzzle[clue.row][clue.col + i] = answer[1][i]
@@ -95,11 +102,13 @@ class Crossword:
                         self.puzzle[clue.row + i][clue.col] = answer[1][i]
                 break
 
+        self.answers = a_ans + d_ans
+
     def __str__(self):
         s = ''
         for i in range(self.size):
             for j in range(self.size):
-                s += str(self.puzzle[i][j]) + '  '
+                s += str(self.puzzle[i][j]) + ' '
             s += '\n'  # + '-' * self.size * 2 + '\n'
 
         return s
@@ -182,11 +191,11 @@ def coord(c):
 
 
 if __name__ == '__main__':
-    puzzle_file = 'sample_crossword.txt'
-
-    crossword = Crossword()
-
+    puzzle_file = 'crossword.txt'
     a, d = read_guardian_puzzle(puzzle_file)
-    crossword.input_crossword(a, d)
+
+    crossword = Crossword(across=a, down=d, answers='answers.json')
+
+    crossword.fill_answers()
 
     print(crossword)

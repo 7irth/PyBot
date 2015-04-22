@@ -1,8 +1,9 @@
 __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
-import sudoku_solver
 from collections import OrderedDict
-from pybot import chill_out_for_a_bit, Timer, debug
+
+import sudoku_solver
+import pybot
 from imaging import *
 from windows import *
 
@@ -10,20 +11,20 @@ runs = 3
 
 
 def open_sudoku_on_chrome():
-    chill_out_for_a_bit()
+    pybot.chill_out_for_a_bit()
 
     press("winkey")
 
-    chill_out_for_a_bit()
+    pybot.chill_out_for_a_bit()
 
     enter_phrase("google chrome")
     press("enter")
 
-    chill_out_for_a_bit()
+    pybot.chill_out_for_a_bit()
 
     press_hold_release("ctrl", "t")
 
-    chill_out_for_a_bit()
+    pybot.chill_out_for_a_bit()
 
     enter_phrase("websudoku.com")
     press("enter")
@@ -99,7 +100,7 @@ def get_puzzle(sudoku_img):
 
                     cell = sudoku_img.crop((x, y, x + x_size, y + y_size))
 
-                    if debug:
+                    if pybot.debug:
                         print_img(cell, 'all/' + str(row * puzzle_size + col))
 
                     # retrieve value from OCR and fill in puzzle
@@ -171,17 +172,17 @@ def solve_puzzle(sudoku_img):
     sudoku = sudoku_solver.Sudoku()
     found = False
 
-    with Timer('getting numbers the easy way'):
+    with pybot.Timer('getting numbers the easy way'):
         if sudoku.get_input(get_puzzle_hack(sudoku_img)):
             found = True
 
     if not found:
-        with Timer('getting numbers the hard way'):
+        with pybot.Timer('getting numbers the hard way'):
             if sudoku.get_input(get_puzzle(sudoku_img)):
                 found = True
 
     if found:
-        with Timer('solving the puzzle'):
+        with pybot.Timer('solving the puzzle'):
             sudoku.solve()
         submit_puzzle([number for row in sudoku.sudoku for number in row])
     else:
@@ -205,10 +206,10 @@ def next_puzzle(old_x, old_y, old_x_size, old_y_size):
     global runs
 
     if runs > 0:
-        chill_out_for_a_bit()
+        pybot.chill_out_for_a_bit()
 
         bring_search = screen_grab(old_x, old_y, old_x_size, old_y_size)
-        with Timer("finding the button for next puzzle"):
+        with pybot.Timer("finding the button for next puzzle"):
             buttons = find_buttons(bring_search)
 
         try:
@@ -220,7 +221,7 @@ def next_puzzle(old_x, old_y, old_x_size, old_y_size):
 
             move(bring_x, bring_y)
             left_click()
-            chill_out_for_a_bit(1)
+            pybot.chill_out_for_a_bit(1)
 
             # increased search area for next puzzle
             old_x -= 50
@@ -229,13 +230,11 @@ def next_puzzle(old_x, old_y, old_x_size, old_y_size):
             next_search = screen_grab(old_x, old_y,
                                       old_x_size + 100, old_y_size + 100)
 
-            print_img(next_search, "send_to_tirth/next_sudoku")
-
-            with Timer('finding the next puzzle'):
+            with pybot.Timer('finding the next puzzle'):
                 next_x, next_y, x_size, y_size = find_puzzle(next_search)
 
             if next_x is None:
-                if debug:
+                if pybot.debug:
                     print_img(next_search, "send_to_tirth/next_sudoku")
                 print("Couldn't find puzzle this time :(")
 
@@ -253,13 +252,11 @@ def next_puzzle(old_x, old_y, old_x_size, old_y_size):
                 next_puzzle(next_x, next_y, x_size, y_size)
 
         except KeyError:
-            if debug:
+            if pybot.debug:
                 print_img(bring_search, "send_to_tirth/bring_search")
             print("Couldn't find button for next puzzle")
 
     else:
-        # press_hold_release("winkey", "down_arrow")
-        # press_hold_release("winkey", "down_arrow")
         print("You get the point")
 
 
@@ -271,31 +268,30 @@ def go():
           "and keep your arms and legs inside the ride at all times\n")
 
     # open_sudoku_on_chrome()
-    chill_out_for_a_bit(2)
+    pybot.chill_out_for_a_bit(2)
 
     initial_search = screen_grab()
+    with pybot.Timer('finding the puzzle'):
+        x, y, x_size, y_size = find_puzzle(initial_search)
 
-    with Timer('finding the puzzle'):
-        img_x, img_y, x_size, y_size = find_puzzle(initial_search)
-
-    if img_x is None:
-        if debug:
+    if x is None:
+        if pybot.debug:
             print_img(initial_search, "send_to_tirth/no_joy")
         input("Couldn't find puzzle! Press the any key (it's enter) to exit")
 
     else:
         print("Found puzzle! Going to try", runs, "runs")
-        puzzle = screen_grab(img_x, img_y, x_size, y_size)
+        puzzle = screen_grab(x, y, x_size, y_size)
 
-        move(img_x + 5, img_y + 5)
+        move(x + 5, y + 5)
         left_click()
 
-        if debug:
+        if pybot.debug:
             print_img(puzzle, "send_to_tirth/initial_found_puzzle")
 
         try:
             solve_puzzle(puzzle)
-            next_puzzle(img_x, img_y, x_size, y_size)
+            next_puzzle(x, y, x_size, y_size)
         except SudokuException:
             print("Couldn't solve puzzle :(")
 
