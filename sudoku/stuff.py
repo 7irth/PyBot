@@ -2,10 +2,10 @@ __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
 from collections import OrderedDict
 
-import sudoku_solver
 import pybot
-from imaging import *
-from windows import *
+from sudoku import solver
+from utils.imaging import *
+from utils.windows import *
 
 runs = 3
 
@@ -164,7 +164,7 @@ def get_puzzle_hack(sudoku):
 
 # takes in picture of puzzle, then solves and submits it
 def solve_puzzle(sudoku_img):
-    sudoku = sudoku_solver.Sudoku()
+    sudoku = solver.Sudoku()
     found = False
 
     with pybot.Timer('getting numbers the easy way'):

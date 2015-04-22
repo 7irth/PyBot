@@ -119,8 +119,7 @@ def get_guardian(number):
     r = req('http://www.theguardian.com/crosswords/quick/' + number + '/blind')
     resp = ' '.join(r.text.split())
 
-    acr = findall(r'<li>(.*?) </li>',
-                  findall(r'<h2>Across(.*?)</ul>', resp)[0])
+    acr = findall(r'<li>(.*?) </li>', findall(r'<h2>Across(.*?)</u', resp)[0])
     dow = findall(r'<li>(.*?) </li>', findall(r'<h2>Down(.*?)</ul>', resp)[0])
 
     # build Clue objects from given puzzle

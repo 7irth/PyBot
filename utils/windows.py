@@ -5,7 +5,6 @@ import win32con
 from time import sleep
 
 # build command > python -m py2exe.build_exe pybot.py -c -b 0 -x tkinter
-# -x unittest -x urllib -x ssl
 
 # dictionary to hold key name and VK value
 VK_CODE = {'backspace': 0x08,

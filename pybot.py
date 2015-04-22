@@ -1,9 +1,11 @@
 __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 version = '0.0.4'
 
-import sudoku_stuff
-import crossword_stuff
 from time import time, sleep
+
+import sudoku.stuff
+import crossword.stuff
+
 
 debug = True
 timings = True
@@ -58,6 +60,6 @@ if __name__ == '__main__':
     choice = greeting()
 
     if choice == 'sudoku':
-        sudoku_stuff.go()
+        sudoku.stuff.go()
     elif choice == 'crossword':
-        crossword_stuff.go()
+        crossword.stuff.go()

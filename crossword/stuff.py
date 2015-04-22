@@ -1,9 +1,9 @@
 __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
-import crossword_solver
 import pybot
-from windows import *
-from imaging import *
+from crossword import solver
+from utils.windows import *
+from utils.imaging import *
 
 
 def open_guardian_on_chrome(numb):
@@ -76,8 +76,8 @@ def go():
     puzzle = input('Enter a Guardian Quick crossword No ')
 
     with pybot.Timer('solving the crossword'):
-        across, down = crossword_solver.get_guardian(puzzle)
-        crossword = crossword_solver.Crossword(cells, across, down)
+        across, down = solver.get_guardian(puzzle)
+        crossword = solver.Crossword(cells, across, down)
         crossword.fill_answers()
 
         if pybot.debug:

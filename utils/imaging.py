@@ -3,9 +3,12 @@ __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 import os
 from time import time
 from re import finditer
-from PIL import Image, ImageOps, ImageGrab, ImageChops
-from windows import screen_size
 from subprocess import Popen, PIPE
+
+from PIL import Image, ImageOps, ImageGrab, ImageChops
+
+from utils.windows import screen_size
+
 
 # location of tesseract command
 tesseract = 'tesseract'
