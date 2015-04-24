@@ -176,8 +176,7 @@ def get_answers(clue_in):
         answers = []
         for clue in scraped:
             stars = len(findall(r'<div></div>', clue))
-            answer = findall(r'crossword-clues/(.*?)"', clue)[
-                0].strip().lower()
+            answer = findall(r'crossword-clues/(.*?)"', clue)[0].strip().lower()
             if len(answer) == clue_in.length:
                 answers.append((stars, answer))
 

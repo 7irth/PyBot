@@ -289,5 +289,3 @@ def go():
             next_puzzle(x, y, x_size, y_size)
         except SudokuException:
             print("Couldn't solve puzzle :(")
-
-        input("\nIronically, press enter to exit")  # to keep prompt open
