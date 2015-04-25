@@ -4,6 +4,7 @@ from requests import get as req
 from re import findall
 from time import sleep
 from json import loads
+from random import shuffle
 
 delimiter = ' '
 
@@ -36,25 +37,32 @@ class Crossword:
         self.given_ans = None
 
         if across and down:
-            self.input_crossword(across, down)
+            self.fill_clues(across, down)
+
+        self.first_clue = self.clues[0]
 
         if answers:
             with open(answers, 'r') as ans:
                 self.given_ans = loads(ans.read())
 
-    def input_crossword(self, across, down):
-        across_keys = sorted(across.keys())
-        down_keys = sorted(down.keys())
+    def fill_clues(self, across, down, reset=False):
+        if reset:
+            self.puzzle = [[delimiter for _ in range(self.size)]
+                           for _ in range(self.size)]
+            shuffle(self.clues)
+        else:
+            across_keys = sorted(across.keys())
+            down_keys = sorted(down.keys())
 
-        a_at, d_at = 0, 0
-        for i in range((max(len(across), len(down)))):
-            if a_at < len(across):
-                self.clues.append(across[across_keys[a_at]])
-                a_at += 1
+            a_at, d_at = 0, 0
+            for i in range((max(len(across), len(down)))):
+                if a_at < len(across):
+                    self.clues.append(across[across_keys[a_at]])
+                    a_at += 1
 
-            if d_at < len(down):
-                self.clues.append(down[down_keys[d_at]])
-                d_at += 1
+                if d_at < len(down):
+                    self.clues.append(down[down_keys[d_at]])
+                    d_at += 1
 
     def fill_answers(self):
         counter = 0
@@ -85,14 +93,16 @@ class Crossword:
                         collision = True
                         break
 
-                if collision:
+                if collision:  # try another answer
                     if clue.answers.index(answer) == len(clue.answers) - 1:
-                        print('bummer', clue)
+                        print('bummer', clue)  # no more answers left
+                        return False
                     collision = False
                     continue
 
-                a_ans.append(answer[1]) if clue.orientation == 'across' \
-                    else d_ans.append(answer[1])
+                a_ans.append((clue.number, answer[1])) \
+                    if clue.orientation == 'across' \
+                    else d_ans.append((clue.number, answer[1]))
 
                 for i in range(clue.length):
                     if clue.orientation == 'across':
@@ -101,7 +111,10 @@ class Crossword:
                         self.puzzle[clue.row + i][clue.col] = answer[1][i]
                 break
 
-        self.answers = a_ans + d_ans
+        # sort by clue number for entry into puzzle
+        self.answers = ([a[1] for a in sorted(a_ans, key=lambda a: a[0])] +
+                        [a[1] for a in sorted(d_ans, key=lambda a: a[0])])
+        return True
 
     def __str__(self):
         s = ''
@@ -136,6 +149,28 @@ def get_guardian(number):
             Clue(int(p[0]), coord(p[1]), 'down', ' '.join(p[2:]),
                  sum([int(i) for i in
                       p[-1][1:-1].replace('-', ',').split(',')]))
+
+    return across, down
+
+
+def read_guardian_puzzle(file):
+    across, down = {}, {}
+    with open(file, 'r') as puzzle:
+        puzz = puzzle.readlines()
+
+    switch = puzz.index('\n')
+
+    for i in range(len(puzz)):
+        p = puzz[i].strip().split()
+        if i < switch:
+            across[int(p[0])] = \
+                Clue(int(p[0]), coord(p[1]), 'across', ' '.join(p[2:]),
+                     sum([int(i) for i in p[-1][1:-1].split(',')]))
+
+        elif i > switch:
+            down[int(p[0])] = \
+                Clue(int(p[0]), coord(p[1]), 'down', ' '.join(p[2:]),
+                     sum([int(i) for i in p[-1][1:-1].split(',')]))
 
     return across, down
 
@@ -176,9 +211,9 @@ def get_answers(clue_in):
         answers = []
         for clue in scraped:
             stars = len(findall(r'<div></div>', clue))
-            answer = findall(r'crossword-clues/(.*?)"', clue)[0].strip().lower()
-            if len(answer) == clue_in.length:
-                answers.append((stars, answer))
+            ans = findall(r'crossword-clues/(.*?)"', clue)[0].strip().lower()
+            if len(ans) == clue_in.length:
+                answers.append((stars, ans))
 
         return answers
     else:

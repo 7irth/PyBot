@@ -4,6 +4,7 @@ import pybot
 from crossword import solver
 from utils.windows import *
 from utils.imaging import *
+from os import path
 
 
 def open_guardian_on_chrome(numb=None):
@@ -71,26 +72,37 @@ def go():
     cells = 13
     cell_size = 28
 
-    open_guardian_on_chrome()
+    # open_guardian_on_chrome()
 
     puzzle = input('Enter a Guardian Quick crossword No ')
 
-    with pybot.Timer('solving the crossword'):
+    if puzzle == 'test':
+        sample_puzzle = path.realpath('') + '\sample_crossword.txt'
+        sample_answers = path.realpath('') + '\sample_answers.json'
+
+        open_guardian_on_chrome('14022')
+        pybot.chill_out_for_a_bit(2)
+
+        across, down = solver.read_guardian_puzzle(sample_puzzle)
+        crossword = solver.Crossword(cells, across, down, sample_answers)
+    else:
         across, down = solver.get_guardian(puzzle)
         crossword = solver.Crossword(cells, across, down)
-        crossword.fill_answers()
 
-        if pybot.debug:
-            print(crossword.answers)
+    with pybot.Timer('solving the crossword'):
+        while not crossword.fill_answers():
+            crossword.fill_clues(None, None, True)  # reset and shuffle
 
-    # press_hold_release('winkey', 'down_arrow')
-    # pybot.chill_out_for_a_bit(1)
-    initial_search = screen_grab()
-    # print('Sorry about that, had to move the terminal to find the puzzle')
-    # press_hold_release('alt', 'esc')
-    # press_hold_release('winkey', 'up_arrow')
+    if pybot.debug:
+        print(crossword.answers)
 
     with pybot.Timer('finding the crossword'):
+        # press_hold_release('winkey', 'down_arrow')
+        pybot.chill_out_for_a_bit(1)
+        initial_search = screen_grab()
+        # press_hold_release('alt', 'esc')
+        # press_hold_release('winkey', 'up_arrow')
+
         x, y, x_size, y_size = find_puzzle(initial_search)
 
     if x is None:
@@ -99,11 +111,9 @@ def go():
         input("Couldn't find puzzle! Press the any key (it's enter) to exit")
 
     else:
-        first = crossword.clues[0]
-
-        move(x + first.col * cell_size + cell_size // 2,
-             y + first.row * cell_size + cell_size // 2)
-        left_click(); sleep(0.05); left_click()  # select across
+        move(x + crossword.first_clue.col * cell_size + cell_size // 2,
+             y + crossword.first_clue.row * cell_size + cell_size // 2)
+        left_click(); sleep(0.01); left_click()  # select across
 
         submit_crossword(crossword.answers)
 
