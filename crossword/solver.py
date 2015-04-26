@@ -1,8 +1,8 @@
 __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
+import pybot
 from requests import get as req
 from re import findall
-from time import sleep
 from json import loads
 from random import shuffle
 
@@ -10,18 +10,18 @@ delimiter = ' '
 
 
 class Clue:
-    def __init__(self, number, coords, orientation, clue, length, answer=None):
+    def __init__(self, number, coords, direction, clue, length, answer=None):
         self.number = number
-        self.orientation = orientation
+        self.direction = direction
         self.row, self.col = coords[0], coords[1]
         self.clue = clue
         self.answers = [answer] if answer else None
         self.length = length
 
     def __repr__(self):
-        return '{0} {1} {2} - {3} ({4}): {5}' \
-            .format(str(self.number), self.orientation, (self.row, self.col),
-                    self.clue, str(self.length), self.answers)
+        return ('{0} {1} {2} - {3} ({4}): {5}'
+                .format(str(self.number), self.direction, (self.row, self.col),
+                        self.clue, str(self.length), self.answers))
 
     def __eq__(self, other):
         if type(other) is type(self):
@@ -54,15 +54,15 @@ class Crossword:
             across_keys = sorted(across.keys())
             down_keys = sorted(down.keys())
 
-            a_at, d_at = 0, 0
+            a_index, d_index = 0, 0
             for i in range((max(len(across), len(down)))):
-                if a_at < len(across):
-                    self.clues.append(across[across_keys[a_at]])
-                    a_at += 1
+                if a_index < len(across):
+                    self.clues.append(across[across_keys[a_index]])
+                    a_index += 1
 
-                if d_at < len(down):
-                    self.clues.append(down[down_keys[d_at]])
-                    d_at += 1
+                if d_index < len(down):
+                    self.clues.append(down[down_keys[d_index]])
+                    d_index += 1
 
     def fill_answers(self):
         counter = 0
@@ -85,7 +85,7 @@ class Crossword:
                 current_word = ''
                 for i in range(clue.length):
                     current_word += (self.puzzle[clue.row][clue.col + i]
-                                     if clue.orientation == 'across'
+                                     if clue.direction == 'across'
                                      else self.puzzle[clue.row + i][clue.col])
 
                     if current_word[i] != delimiter and answer[1][i] != \
@@ -101,13 +101,13 @@ class Crossword:
                     continue
 
                 a_ans.append((clue.number, answer[1])) \
-                    if clue.orientation == 'across' \
+                    if clue.direction == 'across' \
                     else d_ans.append((clue.number, answer[1]))
 
                 for i in range(clue.length):
-                    if clue.orientation == 'across':
+                    if clue.direction == 'across':
                         self.puzzle[clue.row][clue.col + i] = answer[1][i]
-                    elif clue.orientation == 'down':
+                    elif clue.direction == 'down':
                         self.puzzle[clue.row + i][clue.col] = answer[1][i]
                 break
 
@@ -130,6 +130,10 @@ def get_guardian(number):
     across, down = {}, {}
 
     r = req('http://www.theguardian.com/crosswords/quick/' + number + '/blind')
+
+    if r.status_code != 200:
+        raise PuzzleNotFound()
+
     resp = ' '.join(r.text.split())
 
     acr = findall(r'<li>(.*?) </li>', findall(r'<h2>Across(.*?)</u', resp)[0])
@@ -151,6 +155,10 @@ def get_guardian(number):
                       p[-1][1:-1].replace('-', ',').split(',')]))
 
     return across, down
+
+
+class PuzzleNotFound(LookupError):
+    pass
 
 
 def read_guardian_puzzle(file):
@@ -198,7 +206,7 @@ def get_answers(clue_in):
             else:
                 url += c
 
-        sleep(4)  # don't send requests too quickly
+        pybot.chill_out_for_a_bit(3)  # don't send requests too quickly
         r = req(url)
 
         if r.status_code != 200:

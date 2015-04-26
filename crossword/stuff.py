@@ -5,6 +5,7 @@ from crossword import solver
 from utils.windows import *
 from utils.imaging import *
 from os import path
+from re import findall
 
 
 def open_guardian_on_chrome(numb=None):
@@ -77,8 +78,8 @@ def go():
     puzzle = input('Enter a Guardian Quick crossword No ')
 
     if puzzle == 'test':
-        sample_puzzle = path.realpath('') + '\sample_crossword.txt'
-        sample_answers = path.realpath('') + '\sample_answers.json'
+        sample_puzzle = path.realpath('') + '\\crossword.txt'
+        sample_answers = path.realpath('') + '\\answers.json'
 
         open_guardian_on_chrome('14022')
         pybot.chill_out_for_a_bit(2)
@@ -86,8 +87,17 @@ def go():
         across, down = solver.read_guardian_puzzle(sample_puzzle)
         crossword = solver.Crossword(cells, across, down, sample_answers)
     else:
-        across, down = solver.get_guardian(puzzle)
-        crossword = solver.Crossword(cells, across, down)
+        found = False
+        while not found:
+            if len(findall(r'^\d+$', puzzle)) != 1:
+                puzzle = input('Try again: ')
+            else:
+                try:
+                    across, down = solver.get_guardian(puzzle)
+                    crossword = solver.Crossword(cells, across, down)
+                    found = True
+                except solver.PuzzleNotFound:
+                    puzzle = input('Couldn\'t find that one, try again: ')
 
     with pybot.Timer('solving the crossword'):
         while not crossword.fill_answers():
@@ -120,3 +130,10 @@ def go():
 
 if __name__ == '__main__':
     go()
+    # print(find_buttons())
+    # import math
+    #
+    # for x in range(10, 500):
+    #     y = int(round((math.sin(x / 10) * 100 + 500), 0))
+    #     move(x, y)
+    #     sleep(0.015)

@@ -85,7 +85,7 @@ def find_buttons(sample_in=screen_grab()):
     sample = sample_in.load()
 
     # chrome button colours
-    top_corner = (219, 219, 220)
+    top_corner = (215, 215, 215)  # (219, 219, 220)
     top_border = (163, 163, 163)
     bot_border = (148, 148, 148)  # gradient
 
@@ -106,8 +106,8 @@ def find_buttons(sample_in=screen_grab()):
 
                 if width > min_width:
                     # check height
-                    while not close_enough(sample[x + 1, test_y], bot_border) \
-                            and height < max_height:
+                    while (not close_enough(sample[x + 1, test_y], bot_border)
+                           and height < max_height):
                         height += 1
                         test_y += 1
 
