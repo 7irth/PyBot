@@ -3,9 +3,9 @@ version = '0.0.4'
 
 from time import time, sleep
 
-import sudoku.stuff
-import crossword.stuff
-import reddit.stuff
+import sudoku
+import crossword
+import reddit
 
 
 debug = True

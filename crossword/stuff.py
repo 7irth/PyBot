@@ -1,7 +1,7 @@
 __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
 import pybot
-from crossword import solver
+import crossword as c
 from utils.windows import *
 from utils.imaging import *
 from os import path
@@ -75,36 +75,36 @@ def go():
 
     # open_guardian_on_chrome()
 
-    puzzle = input('Enter a Guardian Quick crossword No ')
+    entered = input('Enter a Guardian Quick crossword No ')
 
-    if puzzle == 'test':
+    if entered == 'test':
         sample_puzzle = path.realpath('') + '\\crossword.txt'
         sample_answers = path.realpath('') + '\\answers.json'
 
         open_guardian_on_chrome('14022')
         pybot.chill_out_for_a_bit(2)
 
-        across, down = solver.read_guardian_puzzle(sample_puzzle)
-        crossword = solver.Crossword(cells, across, down, sample_answers)
+        across, down = c.solver.read_guardian_puzzle(sample_puzzle)
+        puzzle = c.solver.Crossword(cells, across, down, sample_answers)
     else:
         found = False
         while not found:
-            if len(findall(r'^\d+$', puzzle)) != 1:
-                puzzle = input('Try again: ')
+            if len(findall(r'^\d+$', entered)) != 1:
+                entered = input('Try again: ')
             else:
                 try:
-                    across, down = solver.get_guardian(puzzle)
-                    crossword = solver.Crossword(cells, across, down)
+                    across, down = c.solver.get_guardian(entered)
+                    puzzle = c.solver.Crossword(cells, across, down)
                     found = True
-                except solver.PuzzleNotFound:
-                    puzzle = input('Couldn\'t find that one, try again: ')
+                except c.solver.PuzzleNotFound:
+                    entered = input('Couldn\'t find that one, try again: ')
 
     with pybot.Timer('solving the crossword'):
-        while not crossword.fill_answers():
-            crossword.fill_clues(None, None, True)  # reset and shuffle
+        while not puzzle.fill_answers():
+            puzzle.fill_clues(None, None, True)  # reset and shuffle
 
     if pybot.debug:
-        print(crossword.answers)
+        print(puzzle.answers)
 
     with pybot.Timer('finding the crossword'):
         # press_hold_release('winkey', 'down_arrow')
@@ -121,11 +121,11 @@ def go():
         input("Couldn't find puzzle! Press the any key (it's enter) to exit")
 
     else:
-        move(x + crossword.first_clue.col * cell_size + cell_size // 2,
-             y + crossword.first_clue.row * cell_size + cell_size // 2)
+        move(x + puzzle.first_clue.col * cell_size + cell_size // 2,
+             y + puzzle.first_clue.row * cell_size + cell_size // 2)
         left_click(); sleep(0.01); left_click()  # select across
 
-        submit_crossword(crossword.answers)
+        submit_crossword(puzzle.answers)
 
 
 if __name__ == '__main__':
