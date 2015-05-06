@@ -1,16 +1,16 @@
 __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
-version = '0.0.4'
+version = '0.0.5'
 
 from time import time, sleep
 
 import sudoku
 import crossword
-import reddit
+import facebook
 
 
 debug = True
 timings = True
-functions = ['sudoku', 'crossword', 'reddit', 'kill all humans']
+functions = ['sudoku', 'crossword', 'facebook', 'kill all humans']
 tom_delay = 1
 
 
@@ -26,8 +26,8 @@ def choose():
         sudoku.stuff.go()
     elif picked == 'crossword':
         crossword.stuff.go()
-    elif picked == 'reddit':
-        reddit.stuff.go()
+    elif picked == 'facebook':
+        facebook.stuff.go()
 
 
 def chill_out_for_a_bit(extra_delay=0):

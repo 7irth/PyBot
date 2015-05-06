@@ -1,4 +1,5 @@
 # PyBot
-A simple bot written in Python. Currently finds sudokus from http://www.websudoku.com and keeps solving them. 
+A Python bot that currently solves sudokus from http://www.websudoku.com 
+and crosswords from http://www.theguardian.com/crosswords/series/quick. 
 
 Might not eventually spawn SkyNet.

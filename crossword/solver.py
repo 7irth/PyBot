@@ -38,8 +38,7 @@ class Crossword:
 
         if across and down:
             self.fill_clues(across, down)
-
-        self.first_clue = self.clues[0]
+            self.first_clue = self.clues[0]
 
         if answers:
             with open(answers, 'r') as ans:

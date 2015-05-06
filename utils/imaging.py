@@ -151,4 +151,7 @@ def find_target_by_edges(target_in, sample_in=screen_grab()):
 
 if __name__ == "__main__":
     # print(signature(Image.open('test_images/bring_search.png')))
-    print(find_buttons())
+
+    im = Image.open('test.png')
+
+    print(len(im.getcolors(4000)))

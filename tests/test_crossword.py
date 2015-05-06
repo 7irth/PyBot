@@ -29,6 +29,9 @@ class TestCrossword(unittest.TestCase):
         self.assertEqual((sum(line.count(sol.delimiter)
                               for line in crossword.puzzle)), 63)
 
+        self.assertEqual(sum(len(a) for a in crossword.answers),
+                         sum(c.length for c in crossword.clues))
+
 
 if __name__ == '__main__':
     unittest.main(exit=False)
