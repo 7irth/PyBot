@@ -95,8 +95,8 @@ def login(session, username, password):
                         data=login_data, verify=False)
 
 
-def conversation_frequency(convo_name):
-    messages = open(convo_name + '.txt', 'r')
+def conversation_frequency(friend_name):
+    messages = open(friend_name + '.txt', 'r')
     freq = {}
 
     # count up messages per day
@@ -105,25 +105,61 @@ def conversation_frequency(convo_name):
         date = datetime.fromtimestamp(int(sent) // 1000).strftime('%Y-%m-%d')
 
         if date not in freq.keys():
-            freq[date] = {convo_name: 0, 'me': 0}
+            freq[date] = {friend_name: 0, 'me': 0}
 
         freq[date][sender] += 1
 
-    csv = open(convo_name + '.csv', 'w')
-    csv.write('Day,me,' + convo_name + '\n')
-
     received, sent = 0, 0
+    chart_data = [[], [], []]
 
-    for day in freq:
-        received += freq[day][convo_name]
+    for day in sorted(freq):
+        received += freq[day][friend_name]
         sent += freq[day]['me']
 
-        csv.write(day + ',' + str(freq[day]['me']) + ',' +
-                  str(freq[day][convo_name]) + '\n')
+        chart_data[0].append(day)
+        chart_data[1].append(freq[day]['me'])
+        chart_data[2].append(freq[day][friend_name])
 
-    csv.close()
+    # prepare chart
+    workbook = xlsxwriter.Workbook(friend_name + '-freq.xlsx')
+    worksheet = workbook.add_worksheet()
+    bold = workbook.add_format({'bold': 1})
 
-    print(received, sent)
+    headings = ['Day', 'me', friend_name]
+
+    worksheet.write_row('A1', headings)
+
+    worksheet.write_column('A2', chart_data[0])
+    worksheet.write_column('B2', chart_data[1])
+    worksheet.write_column('C2', chart_data[2])
+
+    chart = workbook.add_chart({'type': 'line'})
+    data_size = len(chart_data[0])
+
+    chart.add_series({
+        'name': ['Sheet1', 0, 1],
+        'categories': ['Sheet1', 1, 0, data_size + 1, 0],
+        'values': ['Sheet1', 1, 1, data_size + 1, 1]
+    })
+
+    chart.add_series({
+        'name': ['Sheet1', 0, 2],
+        'categories': ['Sheet1', 1, 0, data_size + 1, 0],
+        'values': ['Sheet1', 1, 2, data_size + 1, 2]
+    })
+
+    chart.set_title({'name': 'FB Message Frequency'})
+    chart.set_y_axis({'name': 'Messages sent'})
+
+    chart.set_style(10)
+
+    worksheet.insert_chart('D2', chart)
+
+    workbook.close()
+
+    print(friend_name)
+    print('Received', received)
+    print('Sent', sent)
 
 
 def go():
