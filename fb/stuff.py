@@ -1,11 +1,11 @@
-import os
-
-__author__ = 'Tirth'
+__author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
 import requests
 import bs4
 import re
 import json
+import os
+from datetime import datetime
 import xlsxwriter
 
 os.environ['REQUESTS_CA_BUNDLE'] = os.path.join(os.getcwd(), "cacert.pem")
@@ -34,11 +34,11 @@ def group_url(my_id, friend_id, offset, fb_dtsg):
             (friend_id, json_limit, friend_id, offset, my_id, fb_dtsg))
 
 
-def get_messages(session, fb_dtsg, my_id, friend_id, friend_name, group=False):
+def get_messages(session, fb_dtsg, my_id, friend_id, convo_name, group=False):
     offset = 0
     num_messages = 0
 
-    output = open(friend_name + '.txt', 'w')
+    output = open(convo_name + '.txt', 'w')
 
     while True:
 
@@ -49,22 +49,28 @@ def get_messages(session, fb_dtsg, my_id, friend_id, friend_name, group=False):
         num_messages += len(messages)
 
         for message in messages:
-            date = message['timestamp_datetime']
-            author = 'me' if int(
-                message['author'].split(':')[1]) == my_id else friend_name
-            body = message['body'].encode('utf8')
-            source = 'mobile' if 'mobile' in ' '.join(
-                message['source_tags']) else 'web'
 
-            output.write(
-                ' | '.join([date, author, str(body)[2:-1], source]) + '\n')
+            # print(str(message).encode('utf-8'))
+
+            date = str(message['timestamp'])
+            author = ('me' if int(message['author'].split(':')[1])
+                              == my_id else convo_name)
+            source = ('mobile' if 'mobile' in ' '.join(message['source_tags'])
+                      else 'web')
+
+            try:
+                body = message['body'].encode('utf8')  # TODO: encode properly
+                output.write(' | '.join(
+                    [date, author, str(body)[2:-1], source]) + '\n')
+            except KeyError:
+                pass  # not a text message
 
         if len(messages) < json_limit:
-            print('Got', num_messages, 'in total with', friend_name)
+            print('Got', num_messages, 'messages with', convo_name)
             break
         else:
             offset += json_limit
-            print(num_messages, 'so far')
+            print(num_messages, 'so far, getting more')
 
     output.close()
 
@@ -85,31 +91,72 @@ def login(session, username, password):
     }
 
     # log in and return the response
-    return session.post("https://www.facebook.com/login.php?login_attempt=1",
+    return session.post('https://www.facebook.com/login.php?login_attempt=1',
                         data=login_data, verify=False)
+
+
+def conversation_frequency(convo_name):
+    messages = open(convo_name + '.txt', 'r')
+    freq = {}
+
+    # count up messages per day
+    for message in messages:
+        sent, sender = message.split(' | ')[:2]
+        date = datetime.fromtimestamp(int(sent) // 1000).strftime('%Y-%m-%d')
+
+        if date not in freq.keys():
+            freq[date] = {convo_name: 0, 'me': 0}
+
+        freq[date][sender] += 1
+
+    csv = open(convo_name + '.csv', 'w')
+    csv.write('Day,me,' + convo_name + '\n')
+
+    received, sent = 0, 0
+
+    for day in freq:
+        received += freq[day][convo_name]
+        sent += freq[day]['me']
+
+        csv.write(day + ',' + str(freq[day]['me']) + ',' +
+                  str(freq[day][convo_name]) + '\n')
+
+    csv.close()
+
+    print(received, sent)
 
 
 def go():
     sesh = requests.Session()
+
+    # TODO: embed certs
+    # with open('certs', 'w') as certs:
+    #     r = requests.get('http://curl.haxx.se/ca/cacert.pem')
+    #     print(r.content.decode('utf-8'))
 
     username = input('FB account email: ')
     password = input('Password (you can trust me *shifty eyes*): ')
 
     fb = login(sesh, username, password).content.decode()
 
-    try:
-        print('Logging in...', end=' ')
+    print('Logging in...', end=' ')
 
+    try:
         access_token = \
             re.search(r'fb_dtsg\" value=\"(.*)\"', fb).group(1).split('\"')[0]
+        m_id = int(re.findall(r'id="profile_pic_header_(\d+?)"', fb)[0])
 
         print('successful!')
 
-        m_id = int(input('Your FB ID: '))
-        f_id = int(input('Your friend\'s FB ID: '))
-        f_name = input('Your friend\'s name: ')
+        f_id = input('Your friend\'s FB ID: ')
 
-        get_messages(sesh, access_token, m_id, f_id, f_name)
+        # get friend's name from ID
+        data = sesh.get('https://www.facebook.com/' + f_id, headers=headers,
+                        verify=False).content.decode('utf-8')
+        f_name = re.findall(r'pageTitle">(.*?)</title>', data)[0].split(' ')[0]
+
+        get_messages(sesh, access_token, m_id, int(f_id), f_name)
+        conversation_frequency(f_name)
 
     except AttributeError:
         print('failed :(')

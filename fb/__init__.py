@@ -1,3 +1,3 @@
 __author__ = 'Tirth'
 
-import facebook.stuff
+import fb.stuff
