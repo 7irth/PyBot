@@ -5,7 +5,7 @@ from time import time, sleep
 
 import sudoku
 import crossword
-import fb
+import messages.fb
 
 
 debug = True
@@ -27,7 +27,7 @@ def choose():
     elif picked == 'crossword':
         crossword.stuff.go()
     elif picked == 'facebook':
-        fb.stuff.go()
+        messages.fb.go()
 
 
 def chill_out_for_a_bit(extra_delay=0):
