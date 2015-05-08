@@ -5,12 +5,12 @@ from time import time, sleep
 
 import sudoku
 import crossword
-import messages.fb
+import messages
 
 
 debug = True
 timings = True
-functions = ['sudoku', 'crossword', 'facebook', 'kill all humans']
+functions = ['sudoku', 'crossword', 'facebook', 'whatsapp', 'kill all humans']
 tom_delay = 1
 
 
@@ -28,6 +28,8 @@ def choose():
         crossword.stuff.go()
     elif picked == 'facebook':
         messages.fb.go()
+    elif picked == 'whatsapp':
+        messages.whatsapp.go()
 
 
 def chill_out_for_a_bit(extra_delay=0):
@@ -57,11 +59,11 @@ if __name__ == '__main__':
     # debug = timings = True if input('Debug? (y/n) ') == 'y' else False
 
     print('PyBot! v' + version + ('-debug' if debug else ''))
-    
+
     # print("Enter time delay between steps -")
     # tom_delay = float(input((
     #     "(1 second works for me, might need more for slower computers): ")))
-    
+
     choose()
 
     input("\nIronically, press enter to exit")
