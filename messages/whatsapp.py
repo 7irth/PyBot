@@ -25,7 +25,7 @@ def read_contacts(database):
             else "No name", 'type': 'person'}
 
 
-def extract_messages(database, outfile='wa_messages', sort=False):
+def extract_messages(database, outfile='wa_all', sort_all=False, choice=None):
     conn = sqlite3.connect(database)
     c = conn.cursor()
 
@@ -57,20 +57,25 @@ def extract_messages(database, outfile='wa_messages', sort=False):
         else:
             continue  # calls and images
 
-        if sort:
+        if choice:
+            make_threads(ts, sender, body, choice)
+        elif sort_all:
             make_threads(ts, sender, body)
 
-        formatted.write(str(ts) + ' | ' + sender + ' | ' + body + '\n')
+        formatted.write(str(ts) + SEPR + sender + SEPR + body + '\n')
     formatted.close()
 
 
-def search_for_message(c, ts):
+def get_db_entry(database, ts):
+    conn = sqlite3.connect(database)
+    c = conn.cursor()
+
     return c.execute('SELECT * from messages '
                      'WHERE timestamp=?', (ts,)).fetchall()
 
 
 # TODO: increase efficiency
-def make_threads(sent, sender, msg):
+def make_threads(sent, sender, msg, choice=None):
     makedirs('convos', exist_ok=True)
 
     try:
@@ -82,22 +87,30 @@ def make_threads(sent, sender, msg):
                                          sndr['name'] == 'me'
                      else sndr['name'])
 
-        with open('convos\\' + file_name + '.txt', 'a') as chat:
-            chat.write(str(sent) + ' | ' + sndr['name'] + ' | ' + msg + '\n')
+        if not choice or file_name == choice:
+            with open('convos\\' + file_name + '.txt', 'a') as chat:
+                chat.write(str(sent) + SEPR + sndr['name'] + SEPR + msg + '\n')
 
     except KeyError:
         print(sender, 'not found in phonebook')
 
 
 def go():
-    wa_db = input('wa.db: ')
-    msgstore = input('msgstore.db: ')
+    # wa_db = input('wa.db: ')
+    # msgstore = input('msgstore.db: ')
+
+    wa_db = 'wa.db'
+    msgstore = 'msgstore.db'
 
     read_contacts(wa_db)
-    extract_messages(msgstore, sort=True)
 
+    choice = input('Extract (all) or (contact name): ')
+    extract_messages(msgstore, choice=(choice if choice != 'all' else None))
+
+    # print(get_db_entry(msgstore, input('search timestamp: ')))
+    
     convo = input('Conversation to analyze: ')
-    conversation_frequency(convo, graph=True, today=True)
+    conversation_frequency(convo, graph=True, to_date='today')
 
 
 if __name__ == '__main__':

@@ -6,11 +6,14 @@ from time import time, sleep
 import sudoku
 import crossword
 import messages
+import reddit
+import rss
 
 
 debug = True
 timings = True
-functions = ['sudoku', 'crossword', 'facebook', 'whatsapp', 'kill all humans']
+functions = ['sudoku', 'crossword', 'facebook', 'whatsapp', 'reddit',
+             'rss', 'kill all humans']
 tom_delay = 1
 
 
@@ -30,6 +33,10 @@ def choose():
         messages.fb.go()
     elif picked == 'whatsapp':
         messages.whatsapp.go()
+    elif picked == 'reddit':
+        reddit.stuff.go()
+    elif picked == 'rss':
+        rss.stuff.go()
 
 
 def chill_out_for_a_bit(extra_delay=0):

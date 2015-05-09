@@ -3,15 +3,70 @@ __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 import datetime as dt
 import xlsxwriter
 
+SEPR = ' | '
 
-def conversation_frequency(convo_name, graph=False, by_len=True, today=False):
+
+class ConvoIter:
+    def __init__(self, name, convo):
+        self.name = name
+        self.convo = convo
+        self.size = len(self.convo)
+        self.idx = 0
+
+    def next_ts(self):
+        return (int(self.convo[self.idx].split(SEPR)[0])
+                if self.idx < self.size else 2000000000000)
+
+    def current(self):
+        return self.convo[self.idx]
+
+    def next(self):
+        if self.idx < self.size:
+            n = self.convo[self.idx]
+            self.idx += 1
+            return n
+
+    def __str__(self):
+        return str(self.convo)
+
+
+def merge_conversations(*convos):
+    files = {}
+    total_size = 0
+    merged = []
+    outfile = ''
+
+    for convo in convos:
+        with open(convo + '.txt') as conv:
+            files[convo] = ConvoIter(convo, list(conv))
+            total_size += files[convo].size
+        outfile += convo.split('\\')[1] + '-'
+
+    oldest = None
+    while len(merged) < total_size:
+
+        smallest_ts = 2000000000000
+        for file in files.values():
+            if file.next_ts() < smallest_ts:
+                smallest_ts = file.next_ts()
+                oldest = file
+
+        merged.append(oldest.next())
+
+    with open(outfile[:-1] + '.txt', 'w') as merged_convos:
+        for m in merged:
+            merged_convos.write(m)
+
+
+def conversation_frequency(convo_name, graph=False, by_len=True,
+                           from_date=None, to_date=None):
     messages = open(convo_name + '.txt', 'r')
     people = []
     freq = {}
 
     # count up messages per day
     for message in messages:
-        sent, sender, msg = message.split(' | ')[:3]
+        sent, sender, msg = message.split(SEPR)[:3]
         date = dt.datetime.fromtimestamp(int(sent[:-3])).strftime('%Y-%m-%d')
 
         if sender not in people:
@@ -30,11 +85,18 @@ def conversation_frequency(convo_name, graph=False, by_len=True, today=False):
 
     days = sorted(freq.keys())
 
-    first = [int(d) for d in days[0].split('-')]
-    first_day = dt.date(first[0], first[1], first[2])
+    if from_date:
+        first_day = dt.date(from_date[0], from_date[1], from_date[2])
+    else:
+        first = [int(d) for d in days[0].split('-')]
+        first_day = dt.date(first[0], first[1], first[2])
 
-    last = [int(d) for d in days[len(days) - 1].split('-')]
-    last_day = dt.date(last[0], last[1], last[2]) if today else dt.date.today()
+    if to_date:
+        last_day = (dt.date(to_date[0], to_date[1], to_date[2])
+                    if to_date != 'today' else dt.date.today())
+    else:
+        last = [int(d) for d in days[len(days) - 1].split('-')]
+        last_day = dt.date(last[0], last[1], last[2])
 
     uno = dt.timedelta(days=1)
     total_days = (last_day - first_day).days

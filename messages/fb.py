@@ -92,7 +92,7 @@ def get_messages(session, fb_dtsg, my_id, friend_id, convo_name, group=False):
             except KeyError:
                 pass  # log message
 
-            output.write(' | '.join([date, author, body, source, loc]) + '\n')
+            output.write(SEPR.join([date, author, body, source, loc]) + '\n')
 
         if len(messages) < json_limit:
             print('Got', num_messages, 'messages with', convo_name)
