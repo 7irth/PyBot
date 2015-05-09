@@ -23,6 +23,43 @@ def read_contacts(database):
         else:
             phonebook[sender[0]] = {'name': row[1] if row[1] is not None
             else "No name", 'type': 'person'}
+            
+
+class WhatsAppMessage:
+    def __init__(self, ts, from_me, j_id, group, message, media):
+        self.ts = ts
+        self.sender = self.get_sender(from_me, j_id, group)
+        self.body = self.get_body(message, media)
+
+    @staticmethod
+    def get_sender(from_me, j_id, group):
+        if from_me:
+            if group is not None:
+                raise MessageError  # renamed conversation
+            sender = 'me@' + j_id.split('@')[0]
+        else:
+            if group is None or group == '':  # single chat
+                sender = j_id.split('@')[0] + '@me'
+
+            else:  # group chat
+                sender = group.split('@')[0] + '@' + j_id.split('@')[0]
+
+        return sender
+
+    @staticmethod
+    def get_body(message, media):
+        if message is not None:
+            body = str(message.encode())[2:-1]
+        elif media is not None:
+            body = media
+        else:
+            raise MessageError  # calls and images
+
+        return body
+                
+
+class MessageError(Exception):
+    pass
 
 
 def extract_messages(database, outfile='wa_all', sort_all=False, choice=None):
@@ -38,31 +75,17 @@ def extract_messages(database, outfile='wa_all', sort_all=False, choice=None):
     for msg in msgs:
         ts, from_me, j_id, group, message, media = msg
 
-        if from_me:
-            if group is not None:
-                continue  # renamed conversation
-            sender = 'me@' + j_id.split('@')[0]
-        else:
-            if group is None or group == '':  # single chat
-                sender = j_id.split('@')[0] + '@me'
-
-            else:  # group chat
-                sender = group.split('@')[0] + '@' + j_id.split('@')[0]
-
-        # figure out message
-        if message is not None:
-            body = str(message.encode())[2:-1]
-        elif media is not None:
-            body = media
-        else:
-            continue  # calls and images
+        try:
+            m = WhatsAppMessage(ts, from_me, j_id, group, message, media)
+        except MessageError:
+            continue
 
         if choice:
-            make_threads(ts, sender, body, choice)
+            make_threads(m.ts, m.sender, m.body, choice)
         elif sort_all:
-            make_threads(ts, sender, body)
+            make_threads(m.ts, m.sender, m.body)
 
-        formatted.write(str(ts) + SEPR + sender + SEPR + body + '\n')
+        formatted.write(str(m.ts) + SEPR + m.sender + SEPR + m.body + '\n')
     formatted.close()
 
 
@@ -108,7 +131,7 @@ def go():
     extract_messages(msgstore, choice=(choice if choice != 'all' else None))
 
     # print(get_db_entry(msgstore, input('search timestamp: ')))
-    
+
     convo = input('Conversation to analyze: ')
     conversation_frequency(convo, graph=True, to_date='today')
 

@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 
 from messages.stuff import *
 
-os.environ['REQUESTS_CA_BUNDLE'] = os.path.join(os.getcwd(), "cacert.pem")
+os.environ['REQUESTS_CA_BUNDLE'] = os.path.join(os.getcwd(), "certs")
 
 json_limit = 5000
 
@@ -64,13 +64,11 @@ def get_messages(session, fb_dtsg, my_id, friend_id, convo_name, group=False):
             try:
                 author = author_ids[a_id]
             except KeyError:
-
                 # get author name from ID
-                soup = BeautifulSoup(session.get(
-                    'https://www.facebook.com/' + a_id,
-                    headers=headers, verify=False).content.decode())
+                author = BeautifulSoup(
+                    session.get('https://www.facebook.com/' + a_id,
+                                verify=False).content.decode()).title.string
 
-                author = soup.title.string
                 author_ids[a_id] = author  # save name
 
             # TODO: encode properly
@@ -128,10 +126,9 @@ def login(session, username, password):
 def go():
     sesh = requests.Session()
 
-    # TODO: embed certs
-    # with open('certs', 'w') as certs:
-    #     r = requests.get('http://curl.haxx.se/ca/cacert.pem')
-    #     print(r.content.decode('utf-8'))
+    # download certs
+    with open('certs', 'wb') as certs:
+        certs.write(requests.get('http://curl.haxx.se/ca/cacert.pem').content)
 
     username = input('FB account email: ')
     password = input('Password (you can trust me *shifty eyes*): ')
@@ -148,7 +145,9 @@ def go():
         print('successful!')
     except AttributeError:
         print('failed :(')
-        exit(1)
+        return
+    finally:
+        os.remove('certs')
 
     kind = input('(F)riend or (G)roup messages? ')
     while kind not in ['f', 'g']:

@@ -37,6 +37,8 @@ def merge_conversations(*convos):
     outfile = ''
 
     for convo in convos:
+        sort_by_time(convo)
+
         with open(convo + '.txt') as conv:
             files[convo] = ConvoIter(convo, list(conv))
             total_size += files[convo].size
@@ -56,6 +58,14 @@ def merge_conversations(*convos):
     with open(outfile[:-1] + '.txt', 'w') as merged_convos:
         for m in merged:
             merged_convos.write(m)
+
+
+def sort_by_time(convo):
+    with open(convo + '.txt') as conv:
+        messages = list(conv)
+
+    with open(convo + '.txt', 'w') as s:
+        s.writelines(sorted(messages, key=lambda m: m.split(SEPR)[0]))
 
 
 def conversation_frequency(convo_name, graph=False, by_len=True,

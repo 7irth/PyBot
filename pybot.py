@@ -6,7 +6,7 @@ from time import time, sleep
 import sudoku
 import crossword
 import messages
-import reddit
+# import reddit
 import rss
 
 
@@ -33,8 +33,8 @@ def choose():
         messages.fb.go()
     elif picked == 'whatsapp':
         messages.whatsapp.go()
-    elif picked == 'reddit':
-        reddit.stuff.go()
+    # elif picked == 'reddit':
+    #     reddit.stuff.go()
     elif picked == 'rss':
         rss.stuff.go()
 
