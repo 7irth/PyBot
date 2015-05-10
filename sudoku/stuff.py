@@ -272,7 +272,7 @@ def go():
     if x is None:
         if pybot.debug:
             print_img(initial_search, "send_to_tirth/no_joy")
-        input("Couldn't find puzzle! Press the any key (it's enter) to exit")
+        input("Couldn't find puzzle!")
 
     else:
         print("Found puzzle! Going to try", runs, "runs")

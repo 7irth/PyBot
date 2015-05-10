@@ -37,7 +37,7 @@ def merge_conversations(*convos):
     outfile = ''
 
     for convo in convos:
-        sort_by_time(convo)
+        sort_by_time(convo)  # quicker to check if sorted first?
 
         with open(convo + '.txt') as conv:
             files[convo] = ConvoIter(convo, list(conv))

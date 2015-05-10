@@ -5,6 +5,7 @@ from os import makedirs
 from messages.stuff import *
 
 phonebook = {'me': {'name': 'me', 'type': 'person'}}
+contacts = []
 
 
 def read_contacts(database):
@@ -22,8 +23,10 @@ def read_contacts(database):
             phonebook[sender[0]] = {'name': row[1], 'type': 'group'}
         else:
             phonebook[sender[0]] = {'name': row[1] if row[1] is not None
-            else "No name", 'type': 'person'}
-            
+                                    else "No name", 'type': 'person'}
+
+        contacts.append(row[1])
+
 
 class WhatsAppMessage:
     def __init__(self, ts, from_me, j_id, group, message, media):
@@ -56,7 +59,7 @@ class WhatsAppMessage:
             raise MessageError  # calls and images
 
         return body
-                
+
 
 class MessageError(Exception):
     pass
@@ -65,6 +68,13 @@ class MessageError(Exception):
 def extract_messages(database, outfile='wa_all', sort_all=False, choice=None):
     conn = sqlite3.connect(database)
     c = conn.cursor()
+
+    if choice:
+        while choice not in contacts:
+            choice = input('Contact not found, try again | (s)how all: ')
+            if choice == 's':
+                for contact in contacts:
+                    print(contact)
 
     formatted = open(outfile + '.txt', 'w')
 
@@ -93,13 +103,14 @@ def get_db_entry(database, ts):
     conn = sqlite3.connect(database)
     c = conn.cursor()
 
-    return c.execute('SELECT * from messages '
+    return c.execute('SELECT * FROM messages '
                      'WHERE timestamp=?', (ts,)).fetchall()
 
 
 # TODO: increase efficiency
 def make_threads(sent, sender, msg, choice=None):
-    makedirs('convos', exist_ok=True)
+    if not choice:
+        makedirs('convos', exist_ok=True)
 
     try:
         info = sender.split('@')
@@ -111,7 +122,7 @@ def make_threads(sent, sender, msg, choice=None):
                      else sndr['name'])
 
         if not choice or file_name == choice:
-            with open('convos\\' + file_name + '.txt', 'a') as chat:
+            with open('convos\\' if not choice else '' + file_name + '.txt', 'a') as chat:
                 chat.write(str(sent) + SEPR + sndr['name'] + SEPR + msg + '\n')
 
     except KeyError:
