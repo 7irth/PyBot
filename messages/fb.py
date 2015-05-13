@@ -100,7 +100,7 @@ def get_messages(session, fb_dtsg, my_id, friend_id, convo_name, group=False):
             print(num_messages, 'so far, getting more')
 
     output.close()
-    sort_by_time(convo_name + '.txt')
+    sort_by_time(convo_name)
 
 
 def login(session, username, password):

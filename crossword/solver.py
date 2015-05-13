@@ -29,6 +29,15 @@ class Clue:
         return False
 
 
+def gen_guardian_clue(given, direction):
+    clue_num = int(given[0])
+    coords = coord(given[1])
+    clue = ' '.join(given[2:])
+    clue_len = sum([int(i) for i in given[-1][1:-1].replace('-', ',').split(',')])
+
+    return Clue(clue_num, coords, direction, clue, clue_len)
+
+
 class Crossword:
     def __init__(self, size=13, across=None, down=None, answers=None):
         self.size = size
@@ -140,18 +149,12 @@ def get_guardian(number):
 
     # build Clue objects from given puzzle
     for a in acr:
-        p = a.strip().split()
-        across[int(p[0])] = \
-            Clue(int(p[0]), coord(p[1]), 'across', ' '.join(p[2:]),
-                 sum([int(i) for i in
-                      p[-1][1:-1].replace('-', ',').split(',')]))
+        clue = a.strip().split()
+        across[int(clue[0])] = gen_guardian_clue(clue, 'across')
 
     for d in dow:
-        p = d.strip().split()
-        down[int(p[0])] = \
-            Clue(int(p[0]), coord(p[1]), 'down', ' '.join(p[2:]),
-                 sum([int(i) for i in
-                      p[-1][1:-1].replace('-', ',').split(',')]))
+        clue = d.strip().split()
+        down[int(clue[0])] = gen_guardian_clue(clue, 'down')
 
     return across, down
 
@@ -169,15 +172,11 @@ def read_guardian_puzzle(file):
 
     for i in range(len(puzz)):
         p = puzz[i].strip().split()
-        if i < switch:
-            across[int(p[0])] = \
-                Clue(int(p[0]), coord(p[1]), 'across', ' '.join(p[2:]),
-                     sum([int(i) for i in p[-1][1:-1].split(',')]))
 
+        if i < switch:
+            across[int(p[0])] = gen_guardian_clue(p, 'across')
         elif i > switch:
-            down[int(p[0])] = \
-                Clue(int(p[0]), coord(p[1]), 'down', ' '.join(p[2:]),
-                     sum([int(i) for i in p[-1][1:-1].split(',')]))
+            down[int(p[0])] = gen_guardian_clue(p, 'down')
 
     return across, down
 

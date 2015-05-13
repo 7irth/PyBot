@@ -4,6 +4,7 @@ import datetime as dt
 import xlsxwriter
 
 SEPR = ' | '
+contacts = {}
 
 
 class ConvoIter:
