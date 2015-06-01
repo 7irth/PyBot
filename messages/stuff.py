@@ -130,6 +130,53 @@ def conversation_frequency(convo_name, graph=False, by_len=True,
     return total_freq, people
 
 
+def daily_frequency(convo_name, graph=False, by_len=True):
+    messages = open(convo_name + '.txt', 'r')
+    people = []
+    freq = {'Monday': {},
+            'Tuesday': {},
+            'Wednesday': {},
+            'Thursday': {},
+            'Friday': {},
+            'Saturday': {},
+            'Sunday': {}}
+
+    # count up messages per day
+    for message in messages:
+        sent, sender, msg = message.split(SEPR)[:3]
+        day = dt.datetime.fromtimestamp(int(sent[:-3])).strftime('%A')
+
+        if sender not in people:
+            people.append(sender)
+
+        if sender not in freq[day]:
+            freq[day][sender] = 0
+
+        freq[day][sender] += len(msg) if by_len else 1
+
+    return freq
+
+
+def hourly_frequency(convo_name, graph=False, by_len=True):
+    messages = open(convo_name + '.txt', 'r')
+    people = []
+    freq = {'{:02}'.format(h): {} for h in range(24)}
+
+    # count up messages per hour
+    for message in messages:
+        sent, sender, msg = message.split(SEPR)[:3]
+        hour = dt.datetime.fromtimestamp(int(sent[:-3])).strftime('%H')
+
+        if sender not in people:
+            people.append(sender)
+
+        if sender not in freq[hour]:
+            freq[hour][sender] = 0
+
+        freq[hour][sender] += len(msg) if by_len else 1
+
+    return freq
+
 def graph_frequency(freq, people, convo_name):
     people.sort()
 
@@ -180,3 +227,7 @@ def graph_frequency(freq, people, convo_name):
 
     for person in sorted(peeps, key=peeps.get, reverse=True):
         print('{amount:<7} {name}'.format(name=person, amount=peeps[person]))
+
+
+if __name__ == '__main__':
+    pass

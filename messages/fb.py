@@ -4,6 +4,7 @@ import requests
 import re
 import json
 import os
+import atexit
 from bs4 import BeautifulSoup
 
 from messages.stuff import *
@@ -90,6 +91,7 @@ def get_messages(session, fb_dtsg, my_id, friend_id, convo_name, group=False):
             except KeyError:
                 pass  # log message
 
+            # TODO: JSONify
             output.write(SEPR.join([date, author, body, source, loc]) + '\n')
 
         if len(messages) < json_limit:
@@ -178,6 +180,14 @@ def go():
 
     # analyze and graph
     conversation_frequency(c_name, graph=True)
+
+
+@atexit.register
+def clean_up():
+    try:
+        os.remove('certs')
+    except FileNotFoundError:
+        pass
 
 
 if __name__ == '__main__':
