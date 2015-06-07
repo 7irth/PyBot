@@ -2,6 +2,7 @@ __author__ = 'Tirth Patel <complaints@tirthpatel.com>'
 
 import datetime as dt
 import xlsxwriter
+import nltk
 
 SEPR = ' | '
 contacts = {}
@@ -176,6 +177,19 @@ def hourly_frequency(convo_name, graph=False, by_len=True):
         freq[hour][sender] += len(msg) if by_len else 1
 
     return freq
+
+
+def word_frequency(convo_name):
+    bodies = ''
+
+    with open(convo_name + '.txt', 'r') as msgs:
+        for msg in msgs:
+            sent, sender, body = msg.split(SEPR)[:3]
+            bodies += body.lower() + ' '
+
+    text = nltk.Text(nltk.word_tokenize(bodies))
+    nltk.FreqDist(text).plot(100)
+
 
 def graph_frequency(freq, people, convo_name):
     people.sort()
